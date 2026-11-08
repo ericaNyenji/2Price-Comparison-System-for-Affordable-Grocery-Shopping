@@ -1,7 +1,7 @@
 //Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 //controls the layout, navigation bar visibility, and page routing...This is the file that controls what users see as they navigate around your application.
 
-import React, { useState, useEffect } from "react";//useState — a React Hook used to store data that can change.(state variable).....useEffect — a React Hook used to run code after rendering or when specified dependencies change.
+import{ useState, useEffect } from "react";//useState — a React Hook used to store data that can change.(state variable).....useEffect — a React Hook used to run code after rendering or when specified dependencies change.
 //Here these Hooks help keep track of the logged-in user's role and update it when the URL changes.
 import { Routes, Route, useLocation } from "react-router-dom";
 //These are tools from React Router.- Routes — contains the collection of routes available in your application.- Route — defines a URL and the component that should appear at that URL.- useLocation — tells you the current URL location, including its pathname.(For example, if the browser is at /favorites, useLocation() lets you access that pathname.)

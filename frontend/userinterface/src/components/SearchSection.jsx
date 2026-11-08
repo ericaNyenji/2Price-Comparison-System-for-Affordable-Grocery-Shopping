@@ -1,6 +1,5 @@
 //Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 // src/components/SearchSection.jsx
-import React from 'react';
 import SupermarketLocationPicker from './SupermarketLocationPicker';
 import Select from 'react-select';
 import './SearchSection.css'; 

@@ -1,5 +1,5 @@
 //Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
-import React, { useState } from "react";//{ useState } is a hook that lets you create state variables in your component.
+import { useState } from "react";//{ useState } is a hook that lets you create state variables in your component.
 import axios from "axios";//Imports Axios, a library for making HTTP requests (like talking to your backend).
 import { useNavigate, Link } from "react-router-dom";//Imports a hook from React Router.useNavigate is used for programmatic navigation (like redirecting a user after login).
 import './Login.css';

@@ -13,12 +13,14 @@ const Login = () => {//defining a functional React component called Login.
 
   const handleSubmit = async (e) => {// we use "async" because we're using "await axios.post(...)" ........await pauses the function until that axios request finishes. You can only use await inside an async function. JavaScript won't let you otherwise. That's an asynchronous operation — meaning: It takes time (waiting for the server),, We don't know when it will finish,, JavaScript won't wait unless you tell it to
     //Declares an async function to handle login.
-    e.preventDefault();//Prevents default form behavior (so the page doesn't reload).Because am using a button and I DONT WANT MY PAGE TO GET REFRESHED ???????????why?????????????why not say type=button at the button
+    e.preventDefault();//Prevents default form behavior (so the page doesn't reload).Because am using a button and I DONT WANT MY PAGE TO GET REFRESHED ???????????why?????????????why not say type=button at the button....because type should be type = submit. because we're submitting
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth`, { email, password });
+      //That exact string is passed to axios.post(...) on line 19, which sends the login request to the backend route mounted in server.js:
+      //The Vite part: import.meta.env>>import.meta is a standard ESM feature. Vite extends it with an env object containing variables loaded from your .env* files.
       console.log("Login response data:", response.data);
-      
+    
       const { token, role, userId, name} = response.data;
 
       // Store token in sessionStorage or sessionStorage
@@ -34,7 +36,6 @@ const Login = () => {//defining a functional React component called Login.
       //sessionStorage.setItem("country", country); 
 
       //console.log("UserID from sessionStorage:", userId);
-
 
       // Redirect based on role
       if (role === "owner") {

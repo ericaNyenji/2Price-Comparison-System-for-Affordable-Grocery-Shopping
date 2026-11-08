@@ -14,7 +14,7 @@ const initializeSocket = (socketIO) => {
 // Create price change alert - only when price drops
 const createPriceChangeAlert = async (userId, userType, productId, locationId, oldPrice, newPrice, customMessage = null) => {
     try {
-         const db = await getConnection();//AIVEN mysql
+         const db = await getConnection();
         // Only create an alert if the price has decreased
         if (newPrice < oldPrice) {
             const priceDrop = oldPrice - newPrice;

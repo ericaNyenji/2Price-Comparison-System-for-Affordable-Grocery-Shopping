@@ -1,7 +1,7 @@
 const express = require('express');//imports the Express module
-const cors = require('cors');
-require('dotenv').config();
-const path = require('path');  //ADD THIS LINE BEFORE USING `path
+const cors = require('cors');//Imports the CORS middleware.CORS stands for Cross-Origin Resource Sharing.
+require('dotenv').config();//loads environment variables from .env file into: process.env(?????IMPORTS DOTENV LIBRARY THEN LOADS THE ENV VARIABLES TO PROCESS.ENV)
+const path = require('path');  //ADD THIS LINE BEFORE USING `path....IMPORT PATH??
 const app = express();//Creating an instance of an Express application. Creates an express instance. This app object is the main part of my server. It has methods to : 1. define routes:app.get(), app.post() 2. Add middleware:app.use() 3. start the server: app.listen 4. Handle configuration and settings
 const PORT = process.env.PORT || 5000;//process because it's a built-in Node.js object that gives us access to the environment in which the app is running.In other words, process lets your code interact with the system it's running on 
 
@@ -9,20 +9,20 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 
 // //1.First, Socket.IO is initialized on the server:
-const http = require('http');
+const http = require('http');//IMPORT Node.js's HTTP module.??
 const { Server } = require('socket.io');
-const server = http.createServer(app);
+const server = http.createServer(app);//Express does NOT replace Node.js's HTTP module. Express actually uses Node.js's HTTP functionality underneath. You can see this HERE.....http.createServer(app) creates the actual HTTP server. app tells the HTTP server how to process incoming requests. The main idea: Express is a framework built on top of Node.js HTTP functionality. It saves you from writing lots of repetitive HTTP-handling code yourself.
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3000",//Local development using the IP address
   "https://price-comparison-frontend-t96z.onrender.com" // add my deployed frontend URL
 ];
 const io = new Server(server, { 
   cors: { 
     origin: allowedOrigins, // allow both local & deployed frontend
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true//Allows credentials such as cookies to be included in cross-origin Socket.IO requests when the client is configured to send them.This is useful if you use cookie-based authentication.
   } 
 });
 

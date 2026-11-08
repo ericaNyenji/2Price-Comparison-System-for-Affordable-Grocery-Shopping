@@ -6,13 +6,13 @@ const bcrypt = require("bcryptjs");//bcryptjs: For securely comparing hashed pas
 const router = express.Router();//router: An Express Router instance to define routes.
 
 //const db = require("../db"); // Assuming db.js is for database connection. db: A module (like a db.js file) handling your MySQL or other DB connection.
-const { getConnection } = require("../db");//------ADDED FOR AIVEN
+const { getConnection } = require("../db");
 
 
 
 // Login endpoint....Login Route
 router.post("/", async (req, res) => {//Hey, when someone sends a POST request to /login, here's the function that should run. It'll receive a request (req) and send back a response (res)."..................defines the /api/auth/login POST route. It receives login form data from the frontend.
-  const { email, password } = req.body; //Extracts the email and password fields sent in the request.
+const { email, password } = req.body; //Extracts the email and password fields sent in the request.
 
   // User Lookup
   try {
@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {//Hey, when someone sends a POST request t
     // const [user] = await db.query("SELECT * FROM users WHERE email = ?", [email]);//Queries the database to find a user with the provided email.Returns an array, so [user] grabs the first (and only) match. 
     //AFTER DEBUG -->>>This gives you an array of users, and you're assigning user = result[0], but it's not a single user object directly — so if user.password_hash is undefined, it could also mean the destructuring is wrong. 
     // Try to find the user in the 'customers' table
-    const db = await getConnection(); //------ADDED FOR AIVEN
+    const db = await getConnection(); 
     let [rows] = await db.query("SELECT * FROM customers WHERE email = ?", [email]);
     let user = rows[0]; // Get the first result from the array
     let role = "customer";
@@ -38,7 +38,7 @@ router.post("/", async (req, res) => {//Hey, when someone sends a POST request t
 
 
     // Check password
-    const isMatch = await bcrypt.compare(password, user.password_hash);//Compares the plaintext password from the frontend to the hashed one stored in the DB.
+    const isMatch = await bcrypt.compare(password, user.password_hash);//Compares the plaintext password from the frontend to the hashed one stored in the DB.....Internally, bcrypt:Reads the stored hash.Extracts the salt and cost factor from it. Uses those values to hash the password entered by the user.Compares the resulting hash with the stored hash.
     if (!isMatch) return res.status(400).json({ error: "Invalid password" });//This sends back a response with a status code 400, which means:bad Request (Client sent something incorrect) ..........If it doesn't match, return a 400 error.
 
     let userCountry = null;

@@ -16,7 +16,7 @@ const Login = () => {//defining a functional React component called Login.
     e.preventDefault();//Prevents default form behavior (so the page doesn't reload).Because am using a button and I DONT WANT MY PAGE TO GET REFRESHED ???????????why?????????????why not say type=button at the button
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth`, { email, password });
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth`, { email, password });
       console.log("Login response data:", response.data);
       
       const { token, role, userId, name} = response.data;

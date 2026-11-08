@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import './EditProduct.css';
 
 const EditProduct = () => {
@@ -31,8 +31,8 @@ const EditProduct = () => {
     const fetchDetails = async () => {
       try {
         const [productRes, submissionsRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/api/products/${product_id}?locationId=${location_id}`),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/price-submissions/pending/${location_id}`, {
+          axios.get(`${import.meta.env.VITE_API_URL}/api/products/${product_id}?locationId=${location_id}`),
+          axios.get(`${import.meta.env.VITE_API_URL}/api/price-submissions/pending/${location_id}`, {
             headers: {
               Authorization: `Bearer ${sessionStorage.getItem("token")}`,
             },
@@ -79,7 +79,7 @@ const EditProduct = () => {
   // Initialize socket connection
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
-    const newSocket = io(`${process.env.REACT_APP_API_URL}`, {
+    const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -133,7 +133,7 @@ const EditProduct = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/price-submissions/approve/${submissionId}`,
+        `${import.meta.env.VITE_API_URL}/api/price-submissions/approve/${submissionId}`,
         {},
         {
           headers: {
@@ -156,7 +156,7 @@ const EditProduct = () => {
 
         // Automatically update the price in the database
         try {
-          await axios.put(`${process.env.REACT_APP_API_URL}/api/products/${product_id}`, {
+          await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${product_id}`, {
             price: approvedSubmission.submission.new_price,
             locationId: location_id
           }, {
@@ -184,7 +184,7 @@ const EditProduct = () => {
     try {
       const token = sessionStorage.getItem("token");
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/price-submissions/reject/${submissionId}`,
+        `${import.meta.env.VITE_API_URL}/api/price-submissions/reject/${submissionId}`,
         {},
         {
           headers: {
@@ -202,7 +202,7 @@ const EditProduct = () => {
 
   const handlePriceUpdate = async () => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/products/${product_id}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${product_id}`, {
         price: product.price,
         locationId: location_id
       });
@@ -224,7 +224,7 @@ const EditProduct = () => {
       // Set start time to current time
       const currentDateTime = new Date().toISOString().slice(0, 16);
 
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/deals`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/deals`, {
         productId: product_id,
         dealStartDate: currentDateTime,
         dealEndDate: dealForm.endDateTime,
@@ -253,7 +253,7 @@ const EditProduct = () => {
       // Set start time to current time
       const currentDateTime = new Date().toISOString().slice(0, 16);
 
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/deals/${product_id}`, {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/deals/${product_id}`, {
         dealStartDate: currentDateTime,
         dealEndDate: dealForm.endDateTime,
         locationId: location_id,
@@ -274,7 +274,7 @@ const EditProduct = () => {
     if (!confirm) return;
     
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/deals/${product_id}?locationId=${location_id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/deals/${product_id}?locationId=${location_id}`);
       setProduct(prev => ({ ...prev, onDeal: false, currentDeal: null }));
       alert("❌ Deal removed.");
     } catch (error) {
@@ -286,7 +286,7 @@ const EditProduct = () => {
   return (
     <div className="edit-product-container">
       <img
-        src={`${process.env.REACT_APP_API_URL}/${product.imagePath}`} 
+        src={`${import.meta.env.VITE_API_URL}/${product.imagePath}`} 
         alt={product.name} 
         className="product-image" 
         style={{
@@ -323,7 +323,7 @@ const EditProduct = () => {
 
                 {submission.submission.evidence_image && submission.submission.evidence_image !== "null" && (
                 <img
-                  src={`${process.env.REACT_APP_API_URL}/${submission.submission.evidence_image}`}
+                  src={`${import.meta.env.VITE_API_URL}/${submission.submission.evidence_image}`}
                   alt="Evidence"
                   style={{ width: "120px", borderRadius: "8px", marginTop: "8px", objectFit: "cover" }}
                 />

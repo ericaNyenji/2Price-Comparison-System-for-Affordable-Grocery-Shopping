@@ -1,7 +1,7 @@
 //Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import './Alerts.css';
 
 const Alerts = () => {
@@ -14,7 +14,7 @@ const Alerts = () => {
     if (!userId) return;
 
     // Initialize socket connection
-    const socket = io(`${process.env.REACT_APP_API_URL}`, {
+    const socket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -55,7 +55,7 @@ const Alerts = () => {
     const fetchAlerts = async () => {
       try {
         console.log('Fetching alerts for user:', userId);
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/alerts/${userId}?userType=${userType}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/alerts/${userId}?userType=${userType}`);
         console.log('Alerts response:', response.data);
         setAlerts(response.data || []);
       } catch (error) {
@@ -86,7 +86,7 @@ const Alerts = () => {
       }
 
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/read`,
+        `${import.meta.env.VITE_API_URL}/api/alerts/${alertId}/read`,
         {},
         {
           headers: {

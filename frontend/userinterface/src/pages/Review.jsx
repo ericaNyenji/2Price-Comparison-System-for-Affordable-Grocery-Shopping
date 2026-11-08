@@ -1,7 +1,7 @@
 //Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import axios from 'axios';
 import './Review.css';
 
@@ -25,19 +25,19 @@ const Review = () => {
         const fetchData = async () => {
             try {
                  // Fetch product details (including image)
-            const productResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/details/${productId}`);
+            const productResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/details/${productId}`);
             setProductImage( productResponse.data.product.image_path); 
             
                 // Fetch reviews
-                const reviewsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/reviews/product/${productId}/location/${locationId}`);
+                const reviewsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/reviews/product/${productId}/location/${locationId}`);
                 setReviews(reviewsResponse.data);
                 
                 // Fetch current price
-                const priceResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/${productId}/locations/${locationId}/price`);
+                const priceResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/${productId}/locations/${locationId}/price`);
                 setCurrentPrice(priceResponse.data.price);
                 
                 // Fetch location name
-                const locationResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/locations/${locationId}`);
+                const locationResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/locations/${locationId}`);
                 setLocationName(locationResponse.data.location_name);
                 
                 setLoading(false);
@@ -51,7 +51,7 @@ const Review = () => {
         fetchData();
 
         // Connect to Socket.IO
-        const socket = io(`${process.env.REACT_APP_API_URL}`);
+        const socket = io(`${import.meta.env.VITE_API_URL}`);
         
         socket.on('newReview', (newReview) => {
             if (newReview.product_id === parseInt(productId) && newReview.location_id === parseInt(locationId)) {
@@ -78,7 +78,7 @@ const Review = () => {
         }
 
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/reviews`, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/reviews`, {
                 product_id: productId,
                 location_id: locationId,
                 rating,
@@ -90,7 +90,7 @@ const Review = () => {
             });
 
             // Refresh reviews
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/reviews/product/${productId}/location/${locationId}`);
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/reviews/product/${productId}/location/${locationId}`);
             setReviews(response.data);
             setComment('');
             setError('');
@@ -129,7 +129,7 @@ const Review = () => {
             if (evidenceUrl) formData.append('evidence_url', evidenceUrl);
             if (evidenceImage) formData.append('evidence_image', evidenceImage);
 
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/price-submissions`, formData, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/price-submissions`, formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'multipart/form-data',
@@ -157,7 +157,7 @@ const Review = () => {
         }
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/reviews/${reviewId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -183,7 +183,7 @@ const Review = () => {
             
             {productImage && (
             <img 
-                src={`${process.env.REACT_APP_API_URL}/${productImage}`} 
+                src={`${import.meta.env.VITE_API_URL}/${productImage}`} 
                 alt="Product" 
                 className="product-image"
             />

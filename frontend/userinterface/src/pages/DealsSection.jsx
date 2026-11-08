@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { formatCurrency } from "../utils/currency";
 import './DealsSection.css';
 
@@ -14,7 +14,7 @@ const DealsSection = () => {
   // Initialize socket
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
-    const newSocket = io(`${process.env.REACT_APP_API_URL}`, {
+    const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -54,7 +54,7 @@ const DealsSection = () => {
   useEffect(() => {
     const fetchDeals = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/deals`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/deals`);
         setDeals(response.data.data);
       } catch (error) {
         console.error('Error fetching deals:', error);
@@ -86,7 +86,7 @@ const DealsSection = () => {
               <div
                 className="card-media"
                 style={{
-                  backgroundImage: `url(${process.env.REACT_APP_API_URL}/${deal.image_path})`
+                  backgroundImage: `url(${import.meta.env.VITE_API_URL}/${deal.image_path})`
                 }}
               />
 
@@ -113,7 +113,7 @@ const DealsSection = () => {
                 </div> */}
                 
                  <img
-                    src={`${process.env.REACT_APP_API_URL}/${deal.supermarket_image}`}
+                    src={`${import.meta.env.VITE_API_URL}/${deal.supermarket_image}`}
                     alt={deal.supermarket_name}
                     className="supermarket-logo"
                   />

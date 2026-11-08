@@ -5,7 +5,7 @@ import Select from 'react-select';
 import { useNavigate } from "react-router-dom";  
 import './CustomerDashboard.css';
 import './SupermarketOwnerDashboard.css';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 const SupermarketOwnerDashboard = () => {
   const navigate = useNavigate(); 
@@ -31,7 +31,7 @@ const SupermarketOwnerDashboard = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/category`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/category`);
         setCategories(response.data.data);
         setLoading(false);
       } catch (err) {
@@ -45,7 +45,7 @@ const SupermarketOwnerDashboard = () => {
   
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io(`${process.env.REACT_APP_API_URL}`, {
+    const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
@@ -81,7 +81,7 @@ const SupermarketOwnerDashboard = () => {
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`);
         setExistingProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -112,7 +112,7 @@ const SupermarketOwnerDashboard = () => {
     try {
       setLoadingProducts(true);
       const locationId = sessionStorage.getItem("locationId") || 1;
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/instock?locationId=${locationId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/instock?locationId=${locationId}`);
       const groupedProducts = groupProductsByCategory(response.data.data || []);
       setProductsInStock(groupedProducts);
     } catch (error) {
@@ -173,7 +173,7 @@ const SupermarketOwnerDashboard = () => {
   formData.append('categoryId', productCategory);
 
 
-        const productResponse = await axios.post(`${process.env.REACT_APP_API_URL}/api/products`, formData,
+        const productResponse = await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, formData,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -188,7 +188,7 @@ const SupermarketOwnerDashboard = () => {
 
       // Add price for the product
       const priceResponse = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/prices`,
+        `${import.meta.env.VITE_API_URL}/api/prices`,
         {
           product_id: productId,
           price: productPrice,
@@ -474,7 +474,7 @@ const SupermarketOwnerDashboard = () => {
       {/* --- EXISTING PRODUCT SELECTED --- */}
       <div className="selected-product-preview">
         <img 
-          src={`${process.env.REACT_APP_API_URL}/${selectedProduct.image_path}`} 
+          src={`${import.meta.env.VITE_API_URL}/${selectedProduct.image_path}`} 
           alt={selectedProduct.product_name}
           className="preview-image"
         />

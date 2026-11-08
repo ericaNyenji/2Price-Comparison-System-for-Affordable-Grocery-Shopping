@@ -19,7 +19,7 @@ const ResultsSection = ({ items, loading, searchQuery }) => {
             >
               <div className="product-image-container">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL}/${item.image_path}` }
+                  src={`${import.meta.env.VITE_API_URL}/${item.image_path}` }
                   alt={item.product_name} 
                   className="product-image"
                 />
@@ -36,7 +36,7 @@ const ResultsSection = ({ items, loading, searchQuery }) => {
                   <p className="price">{formatCurrency(item.price)}</p>
                   <div className="supermarket">
                   <img 
-                    src={`${process.env.REACT_APP_API_URL}/${item.supermarket_image}`} 
+                    src={`${import.meta.env.VITE_API_URL}/${item.supermarket_image}`} 
                     alt={item.supermarket_name}
                     className="supermarket-logo"
                     //onError={(e) => e.target.src = '/fallback-logo.png'} 

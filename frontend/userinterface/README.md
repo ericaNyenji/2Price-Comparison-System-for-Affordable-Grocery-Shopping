@@ -1,70 +1,44 @@
-# Getting Started with Create React App
+# Price Comparison System — Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React 18 single-page app built with [Vite](https://vitejs.dev/).
 
-## Available Scripts
+## Requirements
 
-In the project directory, you can run:
+- Node.js 20.19+ or 22.12+ (Node 22 LTS recommended)
+- npm 10+
 
-### `npm start`
+## Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```cmd
+npm install
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Create `.env.local` only if you need to override the committed values. Development API URL is already set in `.env.development`.
 
-### `npm test`
+## Scripts
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the dev server on http://localhost:3000 |
+| `npm start` | Alias for `npm run dev` |
+| `npm run build` | Build for production into `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Run the Vitest suite once |
+| `npm run test:watch` | Run Vitest in watch mode |
 
-### `npm run build`
+The backend must be running at `http://localhost:5000` for API and Socket.IO calls. The backend CORS allowlist only permits the frontend on port 3000, which is why Vite is pinned to that port.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Environment variables
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Vite only exposes variables prefixed with `VITE_` to client code.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| File | Variable | Value |
+|---|---|---|
+| `.env.development` | `VITE_API_URL` | `http://localhost:5000` |
+| `.env.production` | `VITE_API_URL` | `https://price-comparison-backend-sk1x.onrender.com` |
 
-### `npm run eject`
+## Deployment
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Build command: `npm ci && npm run build`
+- Publish directory: `dist`
+- Add a SPA rewrite so all paths fall back to `/index.html`

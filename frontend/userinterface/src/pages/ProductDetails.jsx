@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { formatCurrency } from "../utils/currency";
 import "./ProductDetails.css";
 
@@ -17,7 +17,7 @@ const ProductDetails = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io(`${process.env.REACT_APP_API_URL}`, {
+    const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -59,14 +59,14 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/details/${id}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/details/${id}`);
         setProduct(response.data.product);
         setLoading(false);
         
         // Check if product is in favorites
         if (userId) {
           try {
-            const favoritesResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/favorites/user/${userId}`);
+            const favoritesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/favorites/user/${userId}`);
             const favorites = favoritesResponse.data.data;
             
             // Create an object to track which price cards are favorited
@@ -101,7 +101,7 @@ const ProductDetails = () => {
       if (favoritePrices[price.price_id]) {
         // Remove from favorites
         console.log("Removing favorite:", { userId, productId: id, priceId: price.price_id });
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/favorites/${id}?userId=${userId}&priceId=${price.price_id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/favorites/${id}?userId=${userId}&priceId=${price.price_id}`);
         setFavoritePrices(prev => ({...prev, [price.price_id]: false}));
       } else {
         // Add to favorites
@@ -111,7 +111,7 @@ const ProductDetails = () => {
           priceId: parseInt(price.price_id)
         };
         console.log("Adding favorite:", data);
-        await axios.post(`${process.env.REACT_APP_API_URL}/api/favorites`, data);
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/favorites`, data);
         setFavoritePrices(prev => ({...prev, [price.price_id]: true}));
       }
     } catch (err) {
@@ -134,7 +134,7 @@ const ProductDetails = () => {
     <div className="product-details-container">
       <div className="product-header">
         <img 
-          src={`${process.env.REACT_APP_API_URL}/${product.image_path}`} 
+          src={`${import.meta.env.VITE_API_URL}/${product.image_path}`} 
           alt={product.product_name} 
           className="product-image"
         />
@@ -152,7 +152,7 @@ const ProductDetails = () => {
             >
               <div className="product-image-container">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL}/${product.image_path}`} 
+                  src={`${import.meta.env.VITE_API_URL}/${product.image_path}`} 
                   alt={product.product_name} 
                   className="product-image"
                 />
@@ -165,7 +165,7 @@ const ProductDetails = () => {
                 <p className="price">{formatCurrency(price.price)}</p>
                 <div className="supermarket">
                 <img 
-                   src={`${process.env.REACT_APP_API_URL}/${price.supermarket_image}`} 
+                   src={`${import.meta.env.VITE_API_URL}/${price.supermarket_image}`} 
                   //src={`http://localhost:5000/images/SupermarketLogos/Aldi.png`}
                   alt={price.supermarket_name}
                   className="supermarket-logo"

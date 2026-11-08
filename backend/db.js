@@ -46,29 +46,38 @@
 // module.exports = pool;
 
 
-
-const mysql = require("mysql2/promise");
+//Importing the dependencie --> require() loads a Node.js module.(Node modules???)
+const mysql = require("mysql2/promise");//"mysql2/promise" loads the MySQL2 library's Promise-based API.
+//Why the /promise? MySQL operations are asynchronous. The Promise API allows us to use async/await instead of callbacks.
 const fs = require("fs");
 require("dotenv").config();
 
 let pool;
 
 async function initDB() {//....why doesn't this function have await....why doesnt this function return a promise? it should be async and return a promise that resolves to the pool.????????
+
   if (!pool) {
-    pool = mysql.createPool({
+    const config = {
       host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
+      port: Number(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
-      ssl: {
-        ca: fs.readFileSync(__dirname + "/ca.pem"), // <-- Use your certificate
-      },
-    });
-    console.log("✅ Connected to Aiven MySQL!");
+    };
+
+    // Local MySQL: leave DB_SSL unset or false (no TLS).
+    // Hosted Aiven MySQL: set DB_SSL=true to verify against ca.pem.
+    if (process.env.DB_SSL === "true") {
+      config.ssl = { ca: fs.readFileSync(__dirname + "/ca.pem") };// // <-- Use your certificate(to connect to aiven)That ca.pem belongs to an Aiven MySQL instance
+    }
+
+    pool = mysql.createPool(config);
+    console.log(
+      `✅ MySQL pool created for ${config.host}:${config.port} (ssl: ${process.env.DB_SSL === "true"})`
+    );
   }
   return pool;
 }

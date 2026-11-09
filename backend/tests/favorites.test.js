@@ -41,8 +41,8 @@ describe('Favorites API', () => {
   describe('POST /api/favorites', () => {
     it('should add a new favorite', async () => {
       db.query
-        .mockResolvedValueOnce([[]]) // No existing favorite
-        .mockResolvedValueOnce([{ insertId: 999 }]); // Inserted successfully
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([{ insertId: 999 }]);
 
       const res = await request(app)
         .post('/api/favorites')
@@ -75,7 +75,7 @@ describe('Favorites API', () => {
 
     it('should handle DB errors on insert', async () => {
       db.query
-        .mockResolvedValueOnce([[]]) // No existing
+        .mockResolvedValueOnce([[]])
         .mockRejectedValueOnce(new Error('Insert error'));
 
       const res = await request(app)

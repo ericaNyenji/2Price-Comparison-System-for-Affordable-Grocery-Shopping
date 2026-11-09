@@ -1,84 +1,61 @@
-const express = require('express');//imports the Express module
-const cors = require('cors');//Imports the CORS middleware.CORS stands for Cross-Origin Resource Sharing.
-require('dotenv').config();//loads environment variables from .env file into: process.env(?????IMPORTS DOTENV LIBRARY THEN LOADS THE ENV VARIABLES TO PROCESS.ENV)
-const path = require('path');  //ADD THIS LINE BEFORE USING `path....IMPORT PATH??
-const app = express();//Creating an instance of an Express application. Creates an express instance. This app object is the main part of my server. It has methods to : 1. define routes:app.get(), app.post() 2. Add middleware:app.use() 3. start the server: app.listen 4. Handle configuration and settings
-const PORT = process.env.PORT || 5000;//process because it's a built-in Node.js object that gives us access to the environment in which the app is running.In other words, process lets your code interact with the system it's running on 
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-
-// //1.First, Socket.IO is initialized on the server:
-const http = require('http');//IMPORT Node.js's HTTP module.??
+const http = require('http');
 const { Server } = require('socket.io');
-const server = http.createServer(app);//Express does NOT replace Node.js's HTTP module. Express actually uses Node.js's HTTP functionality underneath. You can see this HERE.....http.createServer(app) creates the actual HTTP server. app tells the HTTP server how to process incoming requests. The main idea: Express is a framework built on top of Node.js HTTP functionality. It saves you from writing lots of repetitive HTTP-handling code yourself.
+const server = http.createServer(app);
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "http://127.0.0.1:3000",//Local development using the IP address
-  "https://price-comparison-frontend-t96z.onrender.com" // add my deployed frontend URL
+  "http://127.0.0.1:3000",
+  "https://price-comparison-frontend-t96z.onrender.com"
 ];
-const io = new Server(server, { 
-  cors: { 
-    origin: allowedOrigins, // allow both local & deployed frontend
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: true//Allows credentials such as cookies to be included in cross-origin Socket.IO requests when the client is configured to send them.This is useful if you use cookie-based authentication.
-  } 
+    credentials: true
+  }
 });
 
-
-
-
-
-// Import scheduled tasks
 const { removeExpiredDeals, activateDeals, createDealExpirationAlerts } = require('./scheduledTasks');
 
-// Initialize socket.io for alerts
 const alertsModule = require('./routes/alerts');
 alertsModule.initializeSocket(io);
 
-// Initialize socket.io for reviews
 const reviewsModule = require('./routes/reviews');
 reviewsModule.initializeSocket(io);
 
-// Initialize socket.io for price submissions
 const priceSubmissionsModule = require('./routes/priceSubmissions');
 priceSubmissionsModule.initializeSocket(io);
 
+io.on('connection', (socket) => {
+  console.log('📡 A user connected with ID:', socket.id);
 
-//  Socket.IO server-side setup....Socket.io connection handling-->  — handling real-time WebSocket connections.
-// 3.The server sets up connection handling and room management:
-io.on('connection', (socket) => {// sets up a listener for when a new client (browser/user) connects to your Socket.IO server.....socket is the individual connection object for that client — you can think of it like a private channel between the server and this one user.
-  console.log('📡 A user connected with ID:', socket.id);// socket.id is a unique ID that Socket.IO automatically gives to each connected user.
-
-
-  // Inside the connection
-  socket.on('join', (userId) => {//Listens for a custom event called 'join' from the client.
-    const roomName = `user_${userId}`;//The client sends a userId..........
+  socket.on('join', (userId) => {
+    const roomName = `user_${userId}`;
     socket.join(roomName);
     console.log(`User ${userId} joined room ${roomName}`);
   });
 
-  socket.on('joinOwnerRoom', (locationId) => {//The client sends a locationId (maybe a store or location they "own").
+  socket.on('joinOwnerRoom', (locationId) => {
     const roomName = `owner_${locationId}`;
-    socket.join(roomName);//The server makes a room like owner_456 and adds the socket to it.
+    socket.join(roomName);
     console.log(`Owner joined room ${roomName}`);
-  });// Now you can do real-time updates to just the owners of a specific store/location.
+  });
 
   socket.on('disconnect', () => {
     console.log('❌User disconnected:', socket.id);
   });
 });
 
-
-
-app.set('io', io); 
-
-// Middleware
-
-//app.use(cors());
-
-
+app.set('io', io);
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -90,16 +67,12 @@ app.use(cors({
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
-}));//ADDED FOR AIVEN
-
-
-
-
+}));
 
 app.use(express.json());
-// const path = require('path');
-app.use(express.static(path.join(__dirname, 'public'))); 
-// Routes..Connect routes
+
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/api/alerts', require('./routes/alerts').router);
 app.use('/api/auth', require("./routes/auth"));
 app.use('/api/locations', require('./routes/locations'));
@@ -118,40 +91,22 @@ app.use('/api/category', require('./routes/category'));
 app.use('/api/productsbycategory', require('./routes/productsbycategory'));
 app.use('/api/instock', require('./routes/instock'));
 app.use('/api/price-submissions', require('./routes/priceSubmissions').router);
-app.use('/uploads', express.static('uploads'));//So images can be accessed like:   //http://localhost:5000/uploads/evidence/yourimage.jpg
-
-
-
-
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
 
-// Run scheduled tasks
-// Check for expired deals every hour
 setInterval(removeExpiredDeals, 60 * 60 * 1000);
 
-// Check for deals that should become active every hour
 setInterval(activateDeals, 60 * 60 * 1000);
 
-// Check for deals that will expire soon every hour
 setInterval(() => createDealExpirationAlerts(io), 60 * 60 * 1000);
 
-// Run tasks immediately on server start
 removeExpiredDeals();
 activateDeals();
 
-//Start the server
-// app.listen(PORT, () => {
-//   console.log(`🚀 Server running on http://localhost:${PORT}`);
-// }); 
-
-//since am using http.createServer(app) for socket.io, I should listen on http, not app: Otherwise, Socket.io won't work properly. You created http with require('http').createServer(app);, and io is hooked to that, not app.listen.
-// Start the server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
-

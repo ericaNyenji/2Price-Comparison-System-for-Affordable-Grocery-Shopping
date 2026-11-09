@@ -1,22 +1,23 @@
-// routes/priceSubmissions.js
 const express = require('express');
 const router = express.Router();
-//const db = require('../db');
+
 const { getConnection } = require("../db");
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 let io;
 
-// Initialize socket.io
+const evidenceUploadDir = path.join(__dirname, '..', 'uploads', 'evidence');
+fs.mkdirSync(evidenceUploadDir, { recursive: true });
+
 const initializeSocket = (socketIO) => {
   io = socketIO;
 };
 
-// Configure multer storage for evidence images
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/evidence'),
+  destination: (req, file, cb) => cb(null, evidenceUploadDir),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
@@ -25,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!allowed.includes(file.mimetype)) {
@@ -35,10 +36,9 @@ const upload = multer({
   },
 });
 
-//  POST - submit new price update (with optional image)
 router.post('/', upload.single('evidence_image'), async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
@@ -49,26 +49,17 @@ router.post('/', upload.single('evidence_image'), async (req, res) => {
 
     const { product_id, location_id, new_price, evidence_url } = req.body;
 
-        // Determine evidence fields
     let evidence_image_path = null;
     let evidence_url_final = null;
 
     if (req.file) {
-    // user uploaded an image
-    evidence_image_path = req.file.path;
+
+    evidence_image_path = `uploads/evidence/${req.file.filename}`;
     } else if (evidence_url && evidence_url.trim() !== "") {
-    // user provided a URL (no image file)
+
     evidence_url_final = evidence_url.trim();
-    } 
-    // else → neither image nor URL: both stay null
+    }
 
-    // await db.query(
-    // `DELETE FROM price_submissions 
-    // WHERE customer_id = ? AND product_id = ? AND location_id = ? AND status = 'pending'`,
-    // [decoded.userId, product_id, location_id]
-    // );
-
-    // Always ensure old/stale paths aren’t kept in DB
     const [result] = await db.query(
     `INSERT INTO price_submissions 
     (customer_id, product_id, location_id, new_price, evidence_url, evidence_image, status) 
@@ -76,8 +67,6 @@ router.post('/', upload.single('evidence_image'), async (req, res) => {
     [decoded.userId, product_id, location_id, new_price, evidence_url_final, evidence_image_path]
     );
 
-
-    // Fetch the newly created submission with joins for socket message...Fetching the full new record and emit it via Socket.IO so the owner can see it in real time:
     const [newSubmission] = await db.query(`
     SELECT ps.*, c.username AS customer_name, p.product_name
     FROM price_submissions ps
@@ -86,30 +75,22 @@ router.post('/', upload.single('evidence_image'), async (req, res) => {
     WHERE ps.submission_id = ?
     `, [result.insertId]);
 
-    
     if (io) {
     const cleanSubmission = { ...newSubmission[0] };
-    if (!req.file) cleanSubmission.evidence_image = null; //  clear old file path
-    //io.emit('newPriceSubmission', cleanSubmission);
+    if (!req.file) cleanSubmission.evidence_image = null;
+
     }
 
-
-   // res.status(201).json(newSubmission[0]);
-
-
-
-    // Get product + customer name for socket message
     const [[product]] = await db.query('SELECT product_name FROM products WHERE product_id = ?', [product_id]);
     const [[customer]] = await db.query('SELECT username FROM customers WHERE user_id = ?', [decoded.userId]);
 
     const cleanSubmission = { ...newSubmission[0] };
-    if (!req.file) cleanSubmission.evidence_image = null; // clear stale image
+    if (!req.file) cleanSubmission.evidence_image = null;
 
     io.to(`owner_${location_id}`).emit('newPriceSubmission', {
     submission: cleanSubmission,
     message: `New price submission for ${product?.product_name} by ${customer?.username}`,
     });
-
 
     res.status(201).json({ message: 'Price submission added successfully', submission: cleanSubmission});
 
@@ -119,10 +100,9 @@ router.post('/', upload.single('evidence_image'), async (req, res) => {
   }
 });
 
-//  GET - pending submissions for owner
 router.get('/pending/:locationId', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
@@ -150,10 +130,9 @@ router.get('/pending/:locationId', async (req, res) => {
   }
 });
 
-// PUT - approve submission
 router.put('/approve/:submissionId', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
@@ -198,10 +177,9 @@ router.put('/approve/:submissionId', async (req, res) => {
   }
 });
 
-//  PUT - reject submission
 router.put('/reject/:submissionId', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
@@ -215,7 +193,6 @@ router.put('/reject/:submissionId', async (req, res) => {
   [decoded.userId, submission.location_id]
 );
 if (!ownerRows.length) return res.status(403).json({ error: 'Not authorized' });
-
 
     await db.query(
       "UPDATE price_submissions SET status = 'rejected', rejected_at = CURRENT_TIMESTAMP WHERE submission_id = ?",

@@ -1,14 +1,13 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Select from 'react-select';
-import { useNavigate } from "react-router-dom";  
+import { useNavigate } from "react-router-dom";
 import './CustomerDashboard.css';
 import './SupermarketOwnerDashboard.css';
 import { io } from 'socket.io-client';
 
 const SupermarketOwnerDashboard = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const name = sessionStorage.getItem("name");
   const locationId = sessionStorage.getItem("locationId");
   const [productName, setProductName] = useState("");
@@ -27,7 +26,6 @@ const SupermarketOwnerDashboard = () => {
   const [error, setError] = useState(null);
   const [imageError, setImageError] = useState("");
 
-
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -42,32 +40,26 @@ const SupermarketOwnerDashboard = () => {
 
     fetchCategories();
   }, []);
-  
-  // Initialize socket connection
+
   useEffect(() => {
     const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
     });
-    
+
     newSocket.on('connect', () => {
       newSocket.emit('joinOwnerRoom', locationId);
     });
 
   newSocket.on('newPriceSubmission', (data) => {
-  if (!data.submission) return; // safeguard
+  if (!data.submission) return;
 
   if (data?.submission?.location_id === parseInt(locationId)) {
   setNewSubmissions(prev => [data, ...prev]);
   if (data?.message) alert(data.message);
 }
 });
-
-    // newSocket.on('newPriceSubmission', (data) => {
-    //   setNewSubmissions(prev => [...prev, data]);
-    //   alert(data.message);
-    // });
 
     return () => {
       newSocket.off('connect');
@@ -76,8 +68,6 @@ const SupermarketOwnerDashboard = () => {
     };
   }, [locationId]);
 
-  
-  // Fetch all products for dropdown
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
@@ -90,9 +80,6 @@ const SupermarketOwnerDashboard = () => {
     fetchAllProducts();
   }, []);
 
-  
-
-  // Helper to group products by category
   const groupProductsByCategory = (products) => {
     return products.reduce((acc, product) => {
       const categoryId = product.category_id?.toString() || 'unknown';
@@ -107,7 +94,6 @@ const SupermarketOwnerDashboard = () => {
     }, {});
   };
 
-  // Fetch products in stock when component mounts or after add
   const fetchProductsInStock = async () => {
     try {
       setLoadingProducts(true);
@@ -127,17 +113,6 @@ const SupermarketOwnerDashboard = () => {
     fetchProductsInStock();
   }, []);
 
-  // const handleProductSelect = (e) => {
-  //   const productId = e.target.value;
-  //   const product = existingProducts.find(p => p.product_id === parseInt(productId));
-  //   setSelectedProduct(product);
-  //   setIsNewProduct(false);
-  //   if (product) {
-  //     setProductName(product.product_name);
-  //     setProductCategory(product.category_id?.toString() || "1");
-  //   }
-  // };
-
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
@@ -148,16 +123,9 @@ const SupermarketOwnerDashboard = () => {
       }
 
       let productId;
-      // if (isNewProduct) {
-      //   // Create new product
-      //   const formData = new FormData();
-      //   formData.append('productName', productName);
-      //   formData.append('productPrice', productPrice);
-      //   formData.append('productImage', productImage);
-      //   formData.append('categoryId', productCategory);
 
       if (isNewProduct) {
-  // Validate image upload
+
   if (!productImage) {
     setImageError("Please upload a product image before submitting.");
     return;
@@ -165,13 +133,11 @@ const SupermarketOwnerDashboard = () => {
     setImageError("");
   }
 
-  // Create new product
   const formData = new FormData();
   formData.append('productName', productName);
   formData.append('productPrice', productPrice);
   formData.append('productImage', productImage);
   formData.append('categoryId', productCategory);
-
 
         const productResponse = await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, formData,
           {
@@ -186,7 +152,6 @@ const SupermarketOwnerDashboard = () => {
         productId = selectedProduct.product_id;
       }
 
-      // Add price for the product
       const priceResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/prices`,
         {
@@ -203,14 +168,14 @@ const SupermarketOwnerDashboard = () => {
 
       if (priceResponse.data.status === 'success') {
         alert("Product added successfully!");
-        // Reset form
+
         setProductName("");
         setProductPrice("");
         setProductImage(null);
         setProductCategory("1");
         setIsNewProduct(false);
         setSelectedProduct(null);
-        // Refresh products list using the refactored fetch
+
         await fetchProductsInStock();
       }
     } catch (error) {
@@ -224,7 +189,7 @@ const SupermarketOwnerDashboard = () => {
   };
 
   const handleCategoryClick = (categoryId) => {
-    // Get all products in the selected category with their prices
+
     const categoryProducts = Object.values(productsInStock)
       .flatMap(category => category.products)
       .filter(product => product.category_id === categoryId)
@@ -234,53 +199,12 @@ const SupermarketOwnerDashboard = () => {
         image_path: product.image_path,
         price: product.price
       }));
-    
+
     navigate(`/owner-category/${categoryId}`, { state: { products: categoryProducts } });
   };
 
-  // const handleApproveSubmission = async (submissionId) => {
-  //   try {
-  //     const token = sessionStorage.getItem("token");
-  //     const response = await axios.put(
-  //       `http://localhost:5000/api/price-submissions/approve/${submissionId}`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     setNewSubmissions(prev => prev.filter(sub => sub.submission.submission_id !== submissionId));
-  //     alert("Price submission approved successfully!");
-  //   } catch (error) {
-  //     console.error("Error approving submission:", error);
-  //     alert("Failed to approve submission.");
-  //   }
-  // };
-
-  // const handleRejectSubmission = async (submissionId) => {
-  //   try {
-  //     const token = sessionStorage.getItem("token");
-  //     const response = await axios.put(
-  //       `http://localhost:5000/api/price-submissions/reject/${submissionId}`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     setNewSubmissions(prev => prev.filter(sub => sub.submission.submission_id !== submissionId));
-  //     alert("Price submission rejected successfully!");
-  //   } catch (error) {
-  //     console.error("Error rejecting submission:", error);
-  //     alert("Failed to reject submission.");
-  //   }
-  // };
-  
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
-
 
   return (
     <div className="owner-dashboard">
@@ -301,26 +225,11 @@ const SupermarketOwnerDashboard = () => {
           </div>
         ))}
       </div>
-
       <div className="add-product-section">
         <h2>Add New Product to your Supermarket</h2>
 <form onSubmit={handleAddProduct} className="add-product-form">
-  {/* Product selection dropdown */}
-  {/* <select
-    value={selectedProduct?.product_id || ""}
-    onChange={handleProductSelect}
-    required={!isNewProduct}
-    className="category-select"
-    disabled={isNewProduct} // Disable when adding new product
-  >
-    <option value="">Select a product</option>
-    {existingProducts.map(product => (
-      <option key={product.product_id} value={product.product_id}>
-        {product.product_name}
-      </option>
-    ))}
-  </select> */}
-
+  {}
+  {}
   <Select
   value={
     selectedProduct
@@ -358,19 +267,16 @@ const SupermarketOwnerDashboard = () => {
     }),
   }}
 />
-
-
-  {/* --- NEW PRODUCT MODE --- */}
+  {}
   {isNewProduct ? (
     <>
-      <input 
-        type="text" 
-        placeholder="Product Name" 
-        value={productName} 
+      <input
+        type="text"
+        placeholder="Product Name"
+        value={productName}
         onChange={(e) => setProductName(e.target.value)}
         required
       />
-
       <div className="image-upload-container">
         <label htmlFor="productImage" className="image-upload-label">
           {productImage ? 'Change Product Image' : 'Upload Product Image'}
@@ -379,38 +285,23 @@ const SupermarketOwnerDashboard = () => {
           id="productImage"
           type="file"
           accept="image/*"
-          //onChange={(e) => setProductImage(e.target.files[0])}
-          onChange={(e) => { setProductImage(e.target.files[0]); setImageError(""); }} // clear error once user uploads
 
-          // required
+          onChange={(e) => { setProductImage(e.target.files[0]); setImageError(""); }}
+
           className="image-upload-input"
         />
         {productImage && (
           <div className="image-preview">
-            <img 
-              src={URL.createObjectURL(productImage)} 
-              alt="Preview" 
+            <img
+              src={URL.createObjectURL(productImage)}
+              alt="Preview"
               className="preview-image"
             />
           </div>
         )}
          {imageError && <p className="error-text">{imageError}</p>}
       </div>
-
-      {/* <select
-        value={productCategory}
-        onChange={(e) => setProductCategory(e.target.value)}
-        required
-        className="category-select"
-      >
-        <option value="">Select Category</option>
-        {categories.map(category => (
-          <option key={category.category_id} value={category.category_id}>
-            {category.category_name}
-          </option>
-        ))}
-      </select> */}
-
+      {}
       <Select
   value={
     categories.find(cat => cat.category_id === parseInt(productCategory))
@@ -440,16 +331,13 @@ const SupermarketOwnerDashboard = () => {
     }),
   }}
 />
-
-
-      <input 
-        type="number" 
-        placeholder="Product Price" 
-        value={productPrice} 
+      <input
+        type="number"
+        placeholder="Product Price"
+        value={productPrice}
         onChange={(e) => setProductPrice(e.target.value)}
         required
       />
-
       <div className="button-row">
         <button type="submit" className="submit-btn">
           Submit New Product
@@ -471,23 +359,21 @@ const SupermarketOwnerDashboard = () => {
     </>
   ) : selectedProduct ? (
     <>
-      {/* --- EXISTING PRODUCT SELECTED --- */}
+      {}
       <div className="selected-product-preview">
-        <img 
-          src={`${import.meta.env.VITE_API_URL}/${selectedProduct.image_path}`} 
+        <img
+          src={`${import.meta.env.VITE_API_URL}/${selectedProduct.image_path}`}
           alt={selectedProduct.product_name}
           className="preview-image"
         />
       </div>
-
-      <input 
-        type="number" 
-        placeholder="Product Price" 
-        value={productPrice} 
+      <input
+        type="number"
+        placeholder="Product Price"
+        value={productPrice}
         onChange={(e) => setProductPrice(e.target.value)}
         required
       />
-
       <div className="button-row">
         <button type="submit" className="submit-btn">
           Add Product
@@ -506,7 +392,7 @@ const SupermarketOwnerDashboard = () => {
     </>
   ) : (
     <>
-      {/* --- NOTHING SELECTED YET --- */}
+      {}
       <div className="button-row">
         <button
           type="button"
@@ -518,11 +404,10 @@ const SupermarketOwnerDashboard = () => {
         >
           Add New Product
         </button>
-
         <button
           type="submit"
           className="submit-btn"
-          disabled={!selectedProduct} // stays inactive until a product is selected
+          disabled={!selectedProduct}
         >
           Add Product
         </button>
@@ -530,8 +415,6 @@ const SupermarketOwnerDashboard = () => {
     </>
   )}
 </form>
-
-
       </div>
     </div>
   );

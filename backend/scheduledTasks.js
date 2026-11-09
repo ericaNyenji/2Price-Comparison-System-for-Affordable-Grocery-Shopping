@@ -1,19 +1,16 @@
 const { getConnection } = require("./db");
 
-// 🕓 Remove expired deals
 async function removeExpiredDeals() {
   try {
-    const db = await getConnection(); // Use the pool
+    const db = await getConnection();
 
-    // Update prices table to mark expired deals as not on deal
     await db.query(`
       UPDATE deals d
       JOIN prices p ON d.product_id = p.product_id AND d.location_id = p.location_id
       SET p.on_deal = false
       WHERE NOW() > d.deal_end_date
-    `);//??????why are we updating if were going to delete it anyways??
+    `);
 
-    // Remove expired deals
     await db.query(`
       DELETE FROM deals
       WHERE NOW() > deal_end_date
@@ -25,7 +22,6 @@ async function removeExpiredDeals() {
   }
 }
 
-// 🟢 Activate valid deals
 async function activateDeals() {
   try {
     const db = await getConnection();
@@ -43,7 +39,6 @@ async function activateDeals() {
   }
 }
 
-// 🔔 Create deal expiration alerts
 async function createDealExpirationAlerts(io) {
   try {
     const db = await getConnection();

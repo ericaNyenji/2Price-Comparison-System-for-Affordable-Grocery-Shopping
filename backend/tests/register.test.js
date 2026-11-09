@@ -4,8 +4,8 @@ const router = require("../routes/register");
 const db = require("../db");
 const bcrypt = require("bcryptjs");
 
-jest.mock("../db"); 
-jest.mock("bcryptjs"); // Mock bcrypt to avoid actual password hashing during testing
+jest.mock("../db");
+jest.mock("bcryptjs");
 
 describe("POST /api/register", () => {
   let app;
@@ -16,10 +16,9 @@ describe("POST /api/register", () => {
     app.use("/api/register", router);
   });
 
-
   it("should return a 500 error if there's a server error", async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {}); 
-    
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
     db.query.mockRejectedValueOnce(new Error("DB Error"));
 
     const response = await request(app)

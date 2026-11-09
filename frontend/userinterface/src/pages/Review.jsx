@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
@@ -20,26 +19,27 @@ const Review = () => {
     const [priceUpdateSuccess, setPriceUpdateSuccess] = useState(false);
     const [productImage, setProductImage] = useState('');
     const [evidenceImage, setEvidenceImage] = useState(null);
-    
+
     useEffect(() => {
+        const fetchCurrentPrice = async () => {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/${productId}?locationId=${locationId}`);
+            setCurrentPrice(response.data.data.price);
+        };
+
         const fetchData = async () => {
             try {
-                 // Fetch product details (including image)
+
             const productResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/details/${productId}`);
-            setProductImage( productResponse.data.product.image_path); 
-            
-                // Fetch reviews
+            setProductImage( productResponse.data.product.image_path);
+
                 const reviewsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/reviews/product/${productId}/location/${locationId}`);
                 setReviews(reviewsResponse.data);
-                
-                // Fetch current price
-                const priceResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/${productId}/locations/${locationId}/price`);
-                setCurrentPrice(priceResponse.data.price);
-                
-                // Fetch location name
+
+                await fetchCurrentPrice();
+
                 const locationResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/locations/${locationId}`);
                 setLocationName(locationResponse.data.location_name);
-                
+
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -50,9 +50,13 @@ const Review = () => {
 
         fetchData();
 
-        // Connect to Socket.IO
         const socket = io(`${import.meta.env.VITE_API_URL}`);
-        
+
+        socket.on('connect', () => {
+            const userId = sessionStorage.getItem('userId');
+            if (userId) socket.emit('join', userId);
+        });
+
         socket.on('newReview', (newReview) => {
             if (newReview.product_id === parseInt(productId) && newReview.location_id === parseInt(locationId)) {
                 setReviews(prevReviews => [newReview, ...prevReviews]);
@@ -63,7 +67,17 @@ const Review = () => {
             setReviews(prevReviews => prevReviews.filter(review => review.review_id !== deletedReviewId));
         });
 
+        socket.on('priceUpdated', (updatedProduct) => {
+            if (updatedProduct.product_id === parseInt(productId) && updatedProduct.location_id === parseInt(locationId)) {
+                setCurrentPrice(updatedProduct.price);
+            }
+        });
+
+        socket.on('priceSubmissionApproved', fetchCurrentPrice);
+
         return () => {
+            socket.off('priceUpdated');
+            socket.off('priceSubmissionApproved');
             socket.disconnect();
         };
     }, [productId, locationId]);
@@ -71,7 +85,7 @@ const Review = () => {
     const handleSubmitReview = async (e) => {
         e.preventDefault();
         const token = sessionStorage.getItem('token');
-        
+
         if (!token) {
             setError('Please log in to leave a review');
             return;
@@ -89,7 +103,6 @@ const Review = () => {
                 }
             });
 
-            // Refresh reviews
             const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/reviews/product/${productId}/location/${locationId}`);
             setReviews(response.data);
             setComment('');
@@ -103,24 +116,13 @@ const Review = () => {
     const handleSubmitPriceUpdate = async (e) => {
         e.preventDefault();
         const token = sessionStorage.getItem('token');
-        
-        
+
         if (!token) {
             setError('Please log in to submit a price update');
             return;
         }
 
         try {
-            // await axios.post('http://localhost:5000/api/price-submissions', {
-            //     product_id: productId,
-            //     location_id: locationId,
-            //     new_price: parseFloat(newPrice),
-            //     evidence_url: evidenceUrl
-            // }, {
-            //     headers: {
-            //         Authorization: `Bearer ${token}`
-            //     }
-            // });
 
                         const formData = new FormData();
             formData.append('product_id', productId);
@@ -136,7 +138,6 @@ const Review = () => {
             },
             });
 
-
             setPriceUpdateSuccess(true);
             setNewPrice('');
             setEvidenceUrl('');
@@ -150,7 +151,7 @@ const Review = () => {
 
     const handleDelete = async (reviewId) => {
         const token = sessionStorage.getItem('token');
-        
+
         if (!token) {
             setError('Please log in to delete a review');
             return;
@@ -180,20 +181,18 @@ const Review = () => {
     return (
         <div className="review-container">
             <h1>Reviews</h1>
-            
             {productImage && (
-            <img 
-                src={`${import.meta.env.VITE_API_URL}/${productImage}`} 
-                alt="Product" 
+            <img
+                src={`${import.meta.env.VITE_API_URL}/${productImage}`}
+                alt="Product"
                 className="product-image"
             />
             )}
-
-            {/* Price Update Section */}
+            {}
             <div className="price-update-section">
-                <h3>Current Price: HUF {price}</h3>
+                <h3>Current Price: HUF {currentPrice ?? price}</h3>
                 {!showPriceUpdateForm ? (
-                    <button 
+                    <button
                         className="update-price-button"
                         onClick={() => setShowPriceUpdateForm(true)}
                     >
@@ -213,16 +212,7 @@ const Review = () => {
                                 required
                             />
                         </div>
-                        {/* <div className="form-group">
-                            <label htmlFor="evidenceUrl">Evidence URL (optional):</label>
-                            <input
-                                type="url"
-                                id="evidenceUrl"
-                                value={evidenceUrl}
-                                onChange={(e) => setEvidenceUrl(e.target.value)}
-                                placeholder="Link to receipt or photo"
-                            />
-                        </div> */}
+                        {}
                                                 <div className="form-group">
                         <label htmlFor="evidenceImage">Upload Evidence Image (optional):</label>
                         <input
@@ -232,8 +222,6 @@ const Review = () => {
                             onChange={(e) => setEvidenceImage(e.target.files[0])}
                         />
                         </div>
-
-
                                                 <div className="form-group">
                         <label htmlFor="evidenceUrl">Evidence URL (optional):</label>
                         <input
@@ -244,12 +232,10 @@ const Review = () => {
                             placeholder="Link to receipt or photo"
                         />
                         </div>
-
-
                         <div className="button-group">
                             <button type="submit" className="submit-button">Submit Update</button>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className="cancel-button"
                                 onClick={() => setShowPriceUpdateForm(false)}
                             >
@@ -264,8 +250,7 @@ const Review = () => {
                     </div>
                 )}
             </div>
-
-            {/* Review Form */}
+            {}
             <form onSubmit={handleSubmitReview} className="review-form">
                 <div className="form-group">
                     <label htmlFor="rating">Rating:</label>
@@ -292,8 +277,7 @@ const Review = () => {
                 </div>
                 <button type="submit" className="submit-button">Submit Review</button>
             </form>
-
-            {/* Reviews List */}
+            {}
             <div className="reviews-list">
                 {reviews.map(review => (
                     <div key={review.review_id} className="review-card">

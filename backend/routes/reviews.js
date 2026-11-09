@@ -1,8 +1,7 @@
-// routes/reviews.js
 const express = require('express');
 const router = express.Router();
-//const db = require('../db');
-const { getConnection } = require("../db");//for AIVEN mysql
+
+const { getConnection } = require("../db");
 const jwt = require('jsonwebtoken');
 
 let io;
@@ -10,10 +9,9 @@ const initializeSocket = (socketIO) => {
   io = socketIO;
 };
 
-// ✅ GET reviews for product/location
 router.get('/product/:productId/location/:locationId', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const [reviews] = await db.query(`
       SELECT r.*, c.username AS customer_name, sl.location_name
       FROM reviews r
@@ -30,10 +28,9 @@ router.get('/product/:productId/location/:locationId', async (req, res) => {
   }
 });
 
-// ✅ POST new review
 router.post('/', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Access token required' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
@@ -55,15 +52,17 @@ router.post('/', async (req, res) => {
     if (io) io.emit('newReview', newReview);
     res.status(201).json(newReview);
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired', message: 'Please log in again' });
+    }
     console.error('Error creating review:', err);
     res.status(500).json({ error: 'Failed to create review' });
   }
 });
 
-// ✅ DELETE review
 router.delete('/:reviewId', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Access token required' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
@@ -77,6 +76,9 @@ router.delete('/:reviewId', async (req, res) => {
 
     res.json({ message: 'Review deleted successfully' });
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired', message: 'Please log in again' });
+    }
     console.error('Error deleting review:', err);
     res.status(500).json({ error: 'Failed to delete review' });
   }

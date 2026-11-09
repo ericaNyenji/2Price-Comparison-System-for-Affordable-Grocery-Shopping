@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -18,7 +17,7 @@ const OwnerCategoryPage = () => {
 
   useEffect(() => {
     const socket = io(`${import.meta.env.VITE_API_URL}`);
-      
+
       socket.on('productDeleted', ({ product_id, location_id }) => {
     console.log("Received productDeleted event:", { product_id, location_id });
     if (location_id === parseInt(locationId)) {
@@ -28,7 +27,6 @@ const OwnerCategoryPage = () => {
     }
   });
 
-
     return () => {
       socket.disconnect();
     };
@@ -37,7 +35,7 @@ const OwnerCategoryPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        //const response = await axios.get(`http://localhost:5000/api/productsbycategory/${categoryId}`);
+
             const response = await axios.get(
       `${import.meta.env.VITE_API_URL}/api/productsbycategory/${categoryId}`,
       {
@@ -63,7 +61,7 @@ const OwnerCategoryPage = () => {
               };
             } catch (err) {
               if (err.response?.status === 404) {
-                // Product doesn't exist in this location
+
                 return null;
               }
               console.error('Error fetching price for product:', product.product_id, err);
@@ -75,10 +73,9 @@ const OwnerCategoryPage = () => {
             }
           })
         );
-        
-        // Filter out products that don't exist in this location
+
         const validProducts = productsWithPrices.filter(product => product !== null && product.existsInLocation);
-        
+
         setProducts(validProducts);
         setCategoryName(response.data.category_name || 'Category');
         setLoading(false);
@@ -103,7 +100,7 @@ const OwnerCategoryPage = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        // The socket event will handle the UI update
+
       } catch (err) {
         setError('Failed to remove product from location');
       }
@@ -119,20 +116,20 @@ const OwnerCategoryPage = () => {
       <div className="products-grid">
         {products.length > 0 ? (
           products.map(product => (
-            <div 
-              key={product.product_id} 
+            <div
+              key={product.product_id}
               className="product-card"
               onClick={() => handleProductClick(product.product_id)}
             >
-              <img 
+              <img
                 src={`${import.meta.env.VITE_API_URL}/${product.image_path}`}
-                alt={product.product_name} 
+                alt={product.product_name}
                 className="product-image"
               />
               <div className="product-info">
                 <h3>{product.product_name}</h3>
                 <p className="price">{formatCurrency(product.price)}</p>
-                <button 
+                <button
                   className="delete-button"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -152,4 +149,4 @@ const OwnerCategoryPage = () => {
   );
 };
 
-export default OwnerCategoryPage; 
+export default OwnerCategoryPage;

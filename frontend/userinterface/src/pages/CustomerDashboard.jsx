@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from "react";
 import axios from "axios";
 import './CustomerDashboard.css';
@@ -10,20 +9,19 @@ import ExploreSection from '../components/ExploreSection';
 import { useNavigate } from 'react-router-dom';
 
 const CustomerDashboard = () => {
-  //const navigate = useNavigate(); 
+
   const name = sessionStorage.getItem("name");
-  //const token = sessionStorage.getItem("token");//...retrieving the JWT from sessionStorage here. I can use it to authenticate my /api/search requests by attaching it in the Authorization header like this
+
   const navigate = useNavigate();
-  
 
   const [searchQuery, setSearchQuery] = useState("");
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false); // Loading state to show when search is in progress
+  const [loading, setLoading] = useState(false);
   const [exploreData, setExploreData] = useState([]);
-  const [supermarkets, setSupermarkets] = useState([]); // List of supermarkets
+  const [supermarkets, setSupermarkets] = useState([]);
   const [filterType, setFilterType] = useState("supermarket");
   const [selectedFilter, setSelectedFilter] = useState("");
-  const [searchRadius, setSearchRadius] = useState(5); // Default 5km radius
+  const [searchRadius, setSearchRadius] = useState(5);
   const [customerLocation, setCustomerLocation] = useState(null);
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
   const [showMap, setShowMap] = useState(false);
@@ -39,13 +37,12 @@ const CustomerDashboard = () => {
     }
   };
 
-  //We're using useEffect to fetch data when the page first loads and now we added another one to re-run a search when filters change 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const exploreData = await axios.get(`${import.meta.env.VITE_API_URL}/api/explore`);
         setExploreData(exploreData.data);
-        console.log(exploreData)//does it output the usestate variable or the normal variable????????????
+        console.log(exploreData)
         const supermarketsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/supermarkets`);
         setSupermarkets(supermarketsResponse.data);
         console.log(supermarketsResponse)
@@ -56,14 +53,13 @@ const CustomerDashboard = () => {
     fetchData();
   }, []);
 
-  useEffect(() => { if (searchQuery) { handleSearch();}}, 
+  useEffect(() => { if (searchQuery) { handleSearch();}},
   [filterType, selectedFilter,searchRadius,useCurrentLocation,customerLocation,searchQuery]);
-  
+
   useEffect(() => {
     const userId = sessionStorage.getItem('userId');
     if (!userId) return;
 
-    // Initialize socket connection
     const socket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
@@ -71,18 +67,16 @@ const CustomerDashboard = () => {
       auth: { userId }
     });
 
-    // Set up socket event listeners
     socket.on('connect', () => {
       console.log('web Socket connected to Server');
       socket.emit('join', userId);
     });
 
-    // Listen for all price updates
     socket.on('priceUpdated', (updatedProduct) => {
       console.log('Price update received:', updatedProduct);
-      setItems(prevItems => 
-        prevItems.map(item => 
-          item.product_id === updatedProduct.product_id && 
+      setItems(prevItems =>
+        prevItems.map(item =>
+          item.product_id === updatedProduct.product_id &&
           item.location_id === updatedProduct.location_id
             ? { ...item, price: updatedProduct.price, on_deal: updatedProduct.on_deal }
             : item
@@ -90,13 +84,12 @@ const CustomerDashboard = () => {
       );
     });
 
-    // Listen for price drops specifically
     socket.on('priceDropped', (priceDropData) => {
       console.log('Price drop received:', priceDropData);
-      // Update the price in the UI
-      setItems(prevItems => 
-        prevItems.map(item => 
-          item.product_id === priceDropData.product_id && 
+
+      setItems(prevItems =>
+        prevItems.map(item =>
+          item.product_id === priceDropData.product_id &&
           item.location_id === priceDropData.location_id
             ? { ...item, price: priceDropData.price, on_deal: priceDropData.on_deal }
             : item
@@ -104,23 +97,20 @@ const CustomerDashboard = () => {
       );
     });
 
-    // Listen for new alerts
     socket.on('newAlert', (alert) => {
       console.log('New alert received:', alert);
-      // Show alert to user
+
       window.alert(alert.message);
     });
 
-    // Listen for product deletion events
     socket.on('productDeleted', ({ productId, locationId }) => {
       console.log('Product removed from location event received:', { productId, locationId });
-      // Remove the product from search results if it's from the current location
-      setItems(prevItems => 
+
+      setItems(prevItems =>
         prevItems.filter(item => !(item.product_id === productId && item.location_id === locationId))
       );
     });
 
-    // Fetch initial data
     fetchDeals();
 
     return () => {
@@ -132,21 +122,7 @@ const CustomerDashboard = () => {
       socket.disconnect();
     };
   }, []);
-  
-//   const handleSearchNoFilter = async () => {
-//     setLoading(true);
-//     try {
-//       let url = `http://localhost:5000/api/search?query=${searchQuery}`;
-//       const response = await axios.get(url);
-//       setItems(response.data.data || []);
-//     }
-//    catch (error) {
-//     console.error("Search error:", error);
-//     setItems([]);
-//   } finally {
-//     setLoading(false);
-//   }
-// };
+
 const handleSearchNoFilter = async () => {
   setLoading(true);
   try {
@@ -154,10 +130,9 @@ const handleSearchNoFilter = async () => {
 
     let url = `${import.meta.env.VITE_API_URL}/api/search?query=${searchQuery}`;
 
-    // Authorization header here too
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${token}`,//attaching the JWT
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -173,7 +148,7 @@ const handleSearchNoFilter = async () => {
 const handleSearch = async () => {
   setLoading(true);
   try {
-    const token = sessionStorage.getItem("token"); // get JWT
+    const token = sessionStorage.getItem("token");
 
     let url = `${import.meta.env.VITE_API_URL}/api/search?query=${searchQuery}`;
 
@@ -188,10 +163,9 @@ const handleSearch = async () => {
       url += `&lat=${customerLocation.lat}&lng=${customerLocation.lng}&radius=${searchRadius}`;
     }
 
-    // Authorization header here
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${token}`,//attaching the JWT
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -204,51 +178,19 @@ const handleSearch = async () => {
   }
 };
 
-// //  // Handle search every time the search query changes
-//   const handleSearch = async () => {
-//     setLoading(true);
-//     try {
-//       let url = `http://localhost:5000/api/search?query=${searchQuery}`;
-      
-//       // Add filter parameters if selected
-//       if (selectedFilter) {
-//         // Find the selected supermarket from the supermarkets array
-//         const selectedSupermarket = supermarkets.find(s => s.supermarket_name === selectedFilter);
-//         if (selectedSupermarket) {
-//           url += `&supermarketType=${selectedSupermarket.supermarket_id}`;
-//         }
-//       }
-
-//       // Add location-based search parameters if customer location is set
-//       if (customerLocation) {
-//         url += `&lat=${customerLocation.lat}&lng=${customerLocation.lng}&radius=${searchRadius}`;
-//       }
-
-//       const response = await axios.get(url);
-//       setItems(response.data.data || []);
-//     } catch (error) {
-//       console.error("Search error:", error);
-//       setItems([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
   const handleSearchChange = (e) => { setSearchQuery(e.target.value);};
 
   useEffect(() => { if (searchQuery !== "") {handleSearch();}}, [searchQuery]);
 
   const handleFilterTypeChange = (e) => {setFilterType(e.target.value); setSelectedFilter("");};
   const handleFilterChange = (e) => {setSelectedFilter(e.target.value);};
-  
-
 
   const handleSetLocation = () => {setIsSettingLocation(true); setShowMap(true);};
 
   const handleLocationSelect = (location) => {
     setCustomerLocation(location);
     setIsSettingLocation(false);
-    // Automatically trigger search with the new location
+
     handleSearch();
   };
 
@@ -264,8 +206,8 @@ const handleSearch = async () => {
             };
             setCustomerLocation(location);
             setUseCurrentLocation(true);
-            //setShowMap(false);
-            handleSearch();//to immediately search after setting location
+
+            handleSearch();
           },
           (error) => {
             console.error("Error getting location:", error);
@@ -278,13 +220,12 @@ const handleSearch = async () => {
   };
 
   return (
-    <div className="dashboard-container">     
+    <div className="dashboard-container">
       <header className="dashboard-hero">
         <h1>Hello {name}, Welcome to Your Dashboard!</h1>
         <p>Here you can search for grocery items and compare prices across multiple supermarkets.</p>
         <h2>Search for Grocery Items</h2>
       </header>
-
       <div className="main-content">
         <SearchSection
         searchQuery={searchQuery}
@@ -305,19 +246,12 @@ const handleSearch = async () => {
         handleLocationSelect={handleLocationSelect}
         handleSearchNoFilter={handleSearchNoFilter}
       />
-
       <ResultsSection items={items} loading={loading} searchQuery={searchQuery} />
       </div>
-      
-      <ExploreSection exploreData={exploreData} />       
-       <DealsSection />    
+      <ExploreSection exploreData={exploreData} />
+       <DealsSection />
     </div>
   );
 };
 
-
 export default CustomerDashboard;
-
-
-
-

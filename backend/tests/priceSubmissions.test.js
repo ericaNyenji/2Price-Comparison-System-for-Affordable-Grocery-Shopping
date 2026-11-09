@@ -17,7 +17,6 @@ describe('POST /api/priceSubmissions', () => {
     token = jwt.sign({ userId: 1, role: 'customer' }, process.env.JWT_SECRET_KEY || 'defaultSecretKey');
   });
 
- 
   it('should return 401 if token is missing', async () => {
     const response = await request(app)
       .post('/api/priceSubmissions')
@@ -29,7 +28,7 @@ describe('POST /api/priceSubmissions', () => {
       });
 
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Access token is required');
+    expect(response.body.error).toBe('No token provided');
   });
 
   it('should return 403 if the user is not a customer', async () => {
@@ -51,5 +50,5 @@ describe('POST /api/priceSubmissions', () => {
 });
 
 afterEach(() => {
-  jest.clearAllMocks(); // Clear mocks after each test to prevent data pollution
+  jest.clearAllMocks();
 });

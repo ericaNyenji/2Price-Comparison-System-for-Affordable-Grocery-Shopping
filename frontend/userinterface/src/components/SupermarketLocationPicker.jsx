@@ -1,11 +1,9 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 
-// Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -13,7 +11,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Create custom store icon
 const storeIcon = L.divIcon({
   className: 'store-marker',
   html: '<div style="background-color: #e74c3c; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; justify-content: center; align-items: center;"><span style="color: white; font-size: 16px;">🏪</span></div>',
@@ -21,7 +18,6 @@ const storeIcon = L.divIcon({
   iconAnchor: [12, 12]
 });
 
-// Create custom selected location icon
 const selectedLocationIcon = L.divIcon({
   className: 'selected-marker',
   html: '<div style="background-color: #4CAF50; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; justify-content: center; align-items: center;"><span style="color: white; font-size: 16px;">📍</span></div>',
@@ -32,10 +28,10 @@ const selectedLocationIcon = L.divIcon({
 const LocationMarker = ({ position, setPosition, existingLocations }) => {
   useMapEvents({
     click(e) {
-      // Check if clicked location is too close to existing locations
+
       const isTooClose = existingLocations.some(loc => {
         const distance = L.latLng(loc.latitude, loc.longitude).distanceTo(e.latlng);
-        return distance < 100; // 100 meters minimum distance
+        return distance < 100;
       });
 
       if (isTooClose) {
@@ -104,7 +100,7 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
         axios.get(`${import.meta.env.VITE_API_URL}/api/supermarkets`),
         axios.get(`${import.meta.env.VITE_API_URL}/api/supermarket_locations`)
       ]);
-      
+
       setSupermarkets(supermarketsRes.data);
       setSupermarketLocations(locationsRes.data.data);
     } catch (error) {
@@ -183,8 +179,7 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          
-          {/* Show user's current location */}
+          {}
           {userLocation && (
             <Marker
               position={[userLocation.lat, userLocation.lng]}
@@ -207,8 +202,7 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
               })}
             />
           )}
-          
-          {/* Show all supermarket locations - always show labels */}
+          {}
           {supermarketLocations.map((location) => (
             <Marker
               key={location.location_id}
@@ -216,8 +210,7 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
               icon={createSupermarketMarker(location)}
             />
           ))}
-
-          {/* Show selected position marker */}
+          {}
           {position && (
             <Marker
               position={[position.lat, position.lng]}
@@ -257,7 +250,6 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
               })}
             />
           )}
-
           <LocationMarker
             position={position}
             setPosition={handlePositionChange}
@@ -265,8 +257,7 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
           />
         </MapContainer>
       </div>
-
-      {/* Only show supermarket form if not in showAllSupermarkets mode */}
+      {}
       {!showAllSupermarkets && (
         <div className="supermarket-form">
           <div className="form-group">
@@ -281,7 +272,6 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
               placeholder="Enter supermarket name"
             />
           </div>
-
           <div className="form-group">
             <label>Supermarket Type:</label>
             <select onChange={(e) => onSupermarketSelect(e.target.value)}>
@@ -299,7 +289,6 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
               {showNewSupermarketInput ? 'Cancel' : 'Add New Type'}
             </button>
           </div>
-
           {showNewSupermarketInput && (
             <div className="form-group">
               <input
@@ -313,7 +302,6 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
               </button>
             </div>
           )}
-
           {position && (
             <div className="coordinates">
               <p>Selected Location:</p>
@@ -327,4 +315,4 @@ const SupermarketLocationPicker = ({ onLocationSelect, onSupermarketSelect, onNa
   );
 };
 
-export default SupermarketLocationPicker; 
+export default SupermarketLocationPicker;

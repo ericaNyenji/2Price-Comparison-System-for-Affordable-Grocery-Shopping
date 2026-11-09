@@ -1,6 +1,5 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useNavigate } from "react-router-dom";
-import "./HomePage.css"; // Link to custom CSS
+import "./HomePage.css";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -30,7 +29,6 @@ const HomePage = () => {
           <button className="btn outline" onClick={() => navigate("/login")}>Login</button>
         </div>
       </div>
-
       <div className="features-grid">
         {features.map((feature, index) => (
           <div className="feature-card" key={index}>
@@ -43,5 +41,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;//exports the Homepage component so that other files can import and use it.
-
+export default HomePage;

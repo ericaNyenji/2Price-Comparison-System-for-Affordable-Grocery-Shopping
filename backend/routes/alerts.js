@@ -1,26 +1,24 @@
 const express = require('express');
 const router = express.Router();
-//const db = require('../db');
-const { getConnection } = require("../db");//for AIVEN mysql
+
+const { getConnection } = require("../db");
 const jwt = require('jsonwebtoken');
 
 let io;
 
-// Initialize socket.io
 const initializeSocket = (socketIO) => {
     io = socketIO;
 };
 
-// Create price change alert - only when price drops
 const createPriceChangeAlert = async (userId, userType, productId, locationId, oldPrice, newPrice, customMessage = null) => {
     try {
          const db = await getConnection();
-        // Only create an alert if the price has decreased
+
         if (newPrice < oldPrice) {
             const priceDrop = oldPrice - newPrice;
             const dropPercentage = ((priceDrop / oldPrice) * 100).toFixed(1);
             const message = customMessage || `Price dropped from $${oldPrice} to $${newPrice} (${dropPercentage}% savings)`;
-            
+
             const [result] = await db.query(
                 'INSERT INTO alerts (user_id, user_type, message, type, product_id, location_id) VALUES (?, ?, ?, ?, ?, ?)',
                 [userId, userType, message, 'price_change', productId, locationId]
@@ -39,18 +37,17 @@ const createPriceChangeAlert = async (userId, userType, productId, locationId, o
 
             return result.insertId;
         }
-        return null; // No alert created if price didn't drop
+        return null;
     } catch (error) {
         console.error('Error creating price change alert:', error);
         throw error;
     }
 };
 
-// Create deal expiration alerts
 const createDealExpirationAlerts = async (io) => {
   try {
-    const db = await getConnection();//AIVEN mysql
-    // Get deals that will expire in the next 5 hours
+    const db = await getConnection();
+
     const [expiringDeals] = await db.query(`
       SELECT 
         d.deal_id,
@@ -83,13 +80,12 @@ const createDealExpirationAlerts = async (io) => {
 
       for (const user of favoriteUsers) {
         const message = `Hurry! The deal on ${deal.product_name} at ${deal.supermarket_name}, ${deal.location_name} expires in 5 hours!`;
-       
+
         const [result] = await db.query(
           'INSERT INTO alerts (user_id, user_type, message, type, product_id, location_id) VALUES (?, ?, ?, ?, ?, ?)',
           [user.user_id, 'customer', message, 'deal_expiration', deal.product_id, deal.location_id]
         );
 
-        // Emit alert to the user's room
         if (io) {
           io.to(`user_${user.user_id}`).emit('newAlert', {
             alert_id: result.insertId,
@@ -107,10 +103,9 @@ const createDealExpirationAlerts = async (io) => {
   }
 };
 
-// Get alerts for a user
 router.get('/:userId', async (req, res) => {
     try {
-        const db = await getConnection();//AIVEN MYSQL
+        const db = await getConnection();
         const userId = req.params.userId;
         const userType = req.query.userType || 'customer';
         const [alerts] = await db.query(
@@ -129,10 +124,9 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-// Mark alert as read
 router.put('/:alertId/read', async (req, res) => {
     try {
-        const db = await getConnection();//AIVEN MYSQL
+        const db = await getConnection();
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ error: 'Access token is required' });
@@ -141,7 +135,7 @@ router.put('/:alertId/read', async (req, res) => {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
             const alertId = req.params.alertId;
-            
+
             await db.query(
                 'UPDATE alerts SET read_at = CURRENT_TIMESTAMP WHERE alert_id = ?',
                 [alertId]
@@ -149,9 +143,9 @@ router.put('/:alertId/read', async (req, res) => {
             res.json({ message: 'Alert marked as read' });
         } catch (jwtError) {
             if (jwtError.name === 'TokenExpiredError') {
-                return res.status(401).json({ 
-                    error: 'Token expired', 
-                    message: 'Please log in again' 
+                return res.status(401).json({
+                    error: 'Token expired',
+                    message: 'Please log in again'
                 });
             }
             throw jwtError;
@@ -162,10 +156,9 @@ router.put('/:alertId/read', async (req, res) => {
     }
 });
 
-// Delete alert
 router.delete('/:alertId', async (req, res) => {
     try {
-        const db = await getConnection();//AIVEN MYSQL
+        const db = await getConnection();
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ error: 'Access token is required' });
@@ -174,14 +167,14 @@ router.delete('/:alertId', async (req, res) => {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "defaultSecretKey");
             const alertId = req.params.alertId;
-            
+
             await db.query('DELETE FROM alerts WHERE alert_id = ?', [alertId]);
             res.json({ message: 'Alert deleted' });
         } catch (jwtError) {
             if (jwtError.name === 'TokenExpiredError') {
-                return res.status(401).json({ 
-                    error: 'Token expired', 
-                    message: 'Please log in again' 
+                return res.status(401).json({
+                    error: 'Token expired',
+                    message: 'Please log in again'
                 });
             }
             throw jwtError;

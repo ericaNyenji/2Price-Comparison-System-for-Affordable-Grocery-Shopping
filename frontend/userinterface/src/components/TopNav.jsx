@@ -1,16 +1,14 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Heart, Bell, User } from "lucide-react"; // modern icon set
+import { Home, Heart, Bell, User } from "lucide-react";
 import "./TopNav.css";
 
 const TopNav = ({ userType }) => {
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeIcon, setActiveIcon] = useState("home");
-  const name = sessionStorage.getItem("name") || "User"; //but we have to be logged in to see TopNav. In what instance will we see "user"
+  const name = sessionStorage.getItem("name") || "User";
 
-  // Close profile menu when clicking outside
   const handleClickOutside = (event) => {
     if (!event.target.closest(".avatar-wrapper")) {
       setShowProfileMenu(false);
@@ -57,7 +55,6 @@ const TopNav = ({ userType }) => {
           className={`nav-icon ${activeIcon === "home" ? "active" : ""}`}
           onClick={goToHome}
         />
-
         {userType === "customer" && (
           <>
             <Heart
@@ -73,11 +70,8 @@ const TopNav = ({ userType }) => {
           </>
         )}
       </div>
-
-
       <div className="avatar-container">
         <p className="user-greeting">Hello, {name}</p>
-
         <div
           className="avatar-wrapper"
           onClick={(e) => {
@@ -89,7 +83,6 @@ const TopNav = ({ userType }) => {
             <div className={`avatar-circle ${activeIcon === "profile" ? "active" : ""}`}>
               <User size={20} className="avatar-icon" />
             </div>
-
             {showProfileMenu && (
               <div className="profile-menu">
                 <div
@@ -108,7 +101,6 @@ const TopNav = ({ userType }) => {
             )}
   </div>
 </div>
-
     </div>
   );
 };

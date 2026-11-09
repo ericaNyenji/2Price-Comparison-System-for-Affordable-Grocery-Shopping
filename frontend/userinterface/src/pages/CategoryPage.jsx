@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -6,7 +5,7 @@ import './CategoryPage.css';
 
 const CategoryPage = () => {
   const { categoryId } = useParams();
-  const [categoryName, setCategoryName] = useState(""); 
+  const [categoryName, setCategoryName] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -14,7 +13,7 @@ const CategoryPage = () => {
   useEffect(() => {
     const fetchProductsByCategory = async () => {
       try {
-        //const response = await axios.get(`http://localhost:5000/api/productsbycategory/${categoryId}`);
+
         const token = sessionStorage.getItem("token");
 
         const response = await axios.get(

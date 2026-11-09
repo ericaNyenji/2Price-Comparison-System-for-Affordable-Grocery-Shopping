@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +20,7 @@ const Profile = () => {
         }
 
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {headers: {Authorization: `Bearer ${token}`}});
-        
+
         console.log("User data from API:", res.data.user);
         console.log("User role from session:", userRole);
         setUser(res.data.user);
@@ -44,8 +43,6 @@ const Profile = () => {
 
     fetchUserData();
   }, [userId, token, navigate]);
-
-  
 
   if (error) {
     return (

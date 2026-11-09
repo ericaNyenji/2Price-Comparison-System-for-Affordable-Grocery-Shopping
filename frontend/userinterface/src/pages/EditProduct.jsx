@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ const EditProduct = () => {
   const { product_id } = useParams();
   const navigate = useNavigate();
   const location_id = sessionStorage.getItem("locationId");
-  
+
   const [product, setProduct] = useState({
     name: "",
     price: "",
@@ -17,7 +16,7 @@ const EditProduct = () => {
     onDeal: false,
     currentDeal: null
   });
-  
+
   const [dealForm, setDealForm] = useState({
     percentageDiscount: "",
     startDateTime: "",
@@ -26,7 +25,6 @@ const EditProduct = () => {
 
   const [priceSubmissions, setPriceSubmissions] = useState([]);
 
-  // Fetch product info and price submissions
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -48,12 +46,10 @@ const EditProduct = () => {
           currentDeal: deal || null
         });
 
-        // Filter submissions for this product
         const productSubmissions = submissionsRes.data.filter(
           sub => sub.product_id === parseInt(product_id)
         );
-        
-        // Format submissions with all necessary information
+
         const formattedSubmissions = productSubmissions.map(sub => ({
           submission: {
             ...sub,
@@ -76,7 +72,6 @@ const EditProduct = () => {
     fetchDetails();
   }, [product_id, location_id]);
 
-  // Initialize socket connection
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
     const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
@@ -85,7 +80,7 @@ const EditProduct = () => {
       reconnectionDelay: 1000,
       auth: { userId }
     });
-    
+
     newSocket.on('connect', () => {
       newSocket.emit('authenticate', { userId });
       newSocket.emit('joinOwnerRoom', location_id);
@@ -93,9 +88,9 @@ const EditProduct = () => {
 
     newSocket.on('newPriceSubmission', (data) => {
       if (data.submission.product_id === parseInt(product_id)) {
-        // Check if this submission is already in the list
+
         setPriceSubmissions(prev => {
-          const exists = prev.some(sub => 
+          const exists = prev.some(sub =>
             sub.submission.submission_id === data.submission.submission_id
           );
           if (!exists) {
@@ -142,19 +137,17 @@ const EditProduct = () => {
         }
       );
 
-      // Find the approved submission to get the new price
       const approvedSubmission = priceSubmissions.find(
         sub => sub.submission.submission_id === submissionId
       );
 
       if (approvedSubmission) {
-        // Update the product's price in the state
+
         setProduct(prev => ({
           ...prev,
           price: approvedSubmission.submission.new_price
         }));
 
-        // Automatically update the price in the database
         try {
           await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${product_id}`, {
             price: approvedSubmission.submission.new_price,
@@ -171,7 +164,6 @@ const EditProduct = () => {
         }
       }
 
-      // Remove the approved submission from the list
       setPriceSubmissions(prev => prev.filter(sub => sub.submission.submission_id !== submissionId));
       alert("Price submission approved and product price updated successfully!");
     } catch (error) {
@@ -221,7 +213,6 @@ const EditProduct = () => {
         return;
       }
 
-      // Set start time to current time
       const currentDateTime = new Date().toISOString().slice(0, 16);
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/deals`, {
@@ -231,7 +222,7 @@ const EditProduct = () => {
         locationId: location_id,
         PercentageDiscount: dealForm.percentageDiscount
       });
-      
+
       if (response.data.success) {
         setProduct(prev => ({ ...prev, onDeal: true }));
         alert('Deal added successfully!');
@@ -250,7 +241,6 @@ const EditProduct = () => {
         return;
       }
 
-      // Set start time to current time
       const currentDateTime = new Date().toISOString().slice(0, 16);
 
       const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/deals/${product_id}`, {
@@ -259,7 +249,7 @@ const EditProduct = () => {
         locationId: location_id,
         PercentageDiscount: dealForm.percentageDiscount
       });
-      
+
       if (response.data.success) {
         alert('Deal updated successfully!');
       }
@@ -272,7 +262,7 @@ const EditProduct = () => {
   const handleDealRemove = async () => {
     const confirm = window.confirm("Are you sure you want to remove this deal?");
     if (!confirm) return;
-    
+
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/deals/${product_id}?locationId=${location_id}`);
       setProduct(prev => ({ ...prev, onDeal: false, currentDeal: null }));
@@ -286,9 +276,9 @@ const EditProduct = () => {
   return (
     <div className="edit-product-container">
       <img
-        src={`${import.meta.env.VITE_API_URL}/${product.imagePath}`} 
-        alt={product.name} 
-        className="product-image" 
+        src={`${import.meta.env.VITE_API_URL}/${product.imagePath}`}
+        alt={product.name}
+        className="product-image"
         style={{
           maxWidth: '200px',
           height: 'auto',
@@ -302,15 +292,14 @@ const EditProduct = () => {
           Current Price: {product.price}
         </strong>
       </div>
-      <input 
-        type="number" 
-        value={product.price} 
-        onChange={(e) => setProduct(prev => ({ ...prev, price: e.target.value }))} 
+      <input
+        type="number"
+        value={product.price}
+        onChange={(e) => setProduct(prev => ({ ...prev, price: e.target.value }))}
         placeholder="New Price"
       />
       <button onClick={handlePriceUpdate}>Update Price</button>
-
-      {/* Price Submissions Section */}
+      {}
       {priceSubmissions.length > 0 && (
         <div className="price-submissions-section">
           <h3>Pending Price Submissions</h3>
@@ -320,7 +309,6 @@ const EditProduct = () => {
                 <p>From: {submission.submission.customer_name}</p>
                 <p>Current Price: ${submission.submission.current_price}</p>
                 <p>Proposed Price: ${submission.submission.new_price}</p>
-
                 {submission.submission.evidence_image && submission.submission.evidence_image !== "null" && (
                 <img
                   src={`${import.meta.env.VITE_API_URL}/${submission.submission.evidence_image}`}
@@ -328,8 +316,6 @@ const EditProduct = () => {
                   style={{ width: "120px", borderRadius: "8px", marginTop: "8px", objectFit: "cover" }}
                 />
               )}
-
-
                 {submission.submission.evidence_url && (
                   <p>
                     <a href={submission.submission.evidence_url} target="_blank" rel="noopener noreferrer">
@@ -350,14 +336,11 @@ const EditProduct = () => {
           </div>
         </div>
       )}
-
       <hr />
-
       <h3>Deal Offer</h3>
-      
       {product.onDeal ? (
         <div className="deal-form">
-          {/*<h3>Update Deal</h3>*/}
+          {}
           <input
             type="number"
             placeholder="Discount Percentage"
@@ -399,10 +382,9 @@ const EditProduct = () => {
           <button onClick={handleDealSubmit}>Add Deal</button>
         </div>
       )}
-
       <br /><br />
       <button onClick={() => navigate(-1)}>Back</button>
-      {/* ⬅ Back */}
+      {}
     </div>
   );
 };

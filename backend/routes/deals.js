@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-//const db = require('../db');
-const { getConnection } = require("../db");//AIVEN MYSQL
+
+const { getConnection } = require("../db");
 const { createDealExpirationAlerts } = require('../scheduledTasks');
 
-// Get all active deals
 router.get('/', async (req, res) => {
   try {
-    const db = await getConnection();//AIVEN MYSQL
+    const db = await getConnection();
     const query = `
       SELECT 
         p.product_id,
@@ -29,28 +28,25 @@ router.get('/', async (req, res) => {
       JOIN supermarkets s ON sl.supermarket_id = s.supermarket_id
       WHERE NOW() BETWEEN d.deal_start_date AND d.deal_end_date
     `;
-    // const { rows } = await db.query(query);
+
     const [rows] = await db.query(query);
-    //res.json({ success: true, data: rows });
-    res.json({ success: true, data: rows || [] }); 
+
+    res.json({ success: true, data: rows || [] });
   } catch (error) {
     console.error('Error fetching deals:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch deals' });
   }
 });
 
-// Add a product to deals
 router.post('/', async (req, res) => {
   try {
-    const db = await getConnection(); // AIVEN MySQL
+    const db = await getConnection();
     const { productId, dealStartDate, dealEndDate, locationId, PercentageDiscount } = req.body;
 
-    // Validate required fields
     if (!productId || !dealStartDate || !dealEndDate || !locationId || !PercentageDiscount) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
-    // Check if a deal already exists
     const [existingDeals] = await db.query(
       'SELECT * FROM deals WHERE product_id = ? AND location_id = ?',
       [productId, locationId]
@@ -60,14 +56,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, error: 'A deal already exists for this product at this location' });
     }
 
-    // Insert the new deal
     const [result] = await db.query(
       `INSERT INTO deals (product_id, location_id, deal_percentage, deal_start_date, deal_end_date)
        VALUES (?, ?, ?, ?, ?)`,
       [productId, locationId, PercentageDiscount, dealStartDate, dealEndDate]
     );
 
-    // Update prices table to mark product as on deal
     await db.query(
       `UPDATE prices 
        SET on_deal = true 
@@ -75,7 +69,6 @@ router.post('/', async (req, res) => {
       [productId, locationId]
     );
 
-    // Fetch the full deal info for socket emission
     const [dealRows] = await db.query(
       `SELECT 
         p.product_id,
@@ -99,7 +92,6 @@ router.post('/', async (req, res) => {
       [productId, locationId]
     );
 
-    // Emit socket event if deal exists
     if (dealRows.length > 0) {
       req.app.get('io').emit('newDeal', dealRows[0]);
       try {
@@ -122,16 +114,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-
-// Remove a product from deals
 router.delete('/:productId', async (req, res) => {
   const { productId } = req.params;
   const { locationId } = req.query;
 
   try {
-    const db = await getConnection(); // AIVEN MySQL
+    const db = await getConnection();
 
-    // Use ? placeholders for MySQL
     await db.query(
       'DELETE FROM deals WHERE product_id = ? AND location_id = ?',
       [productId, locationId]
@@ -142,10 +131,9 @@ router.delete('/:productId', async (req, res) => {
       [productId, locationId]
     );
 
-    // Emit socket event
-    req.app.get('io').emit('dealRemoved', { 
-      productId: parseInt(productId), 
-      locationId: parseInt(locationId) 
+    req.app.get('io').emit('dealRemoved', {
+      productId: parseInt(productId),
+      locationId: parseInt(locationId)
     });
 
     res.json({ success: true, message: 'Product removed from deals successfully' });
@@ -155,11 +143,9 @@ router.delete('/:productId', async (req, res) => {
   }
 });
 
-
-// Update a deal
 router.put('/:productId', async (req, res) => {
   try {
-    const db = await getConnection(); // AIVEN MySQL
+    const db = await getConnection();
     const { productId } = req.params;
     const { dealEndDate, locationId, PercentageDiscount } = req.body;
 
@@ -167,7 +153,6 @@ router.put('/:productId', async (req, res) => {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
-    // ✅ Use ? placeholders for MySQL
     await db.query(
       `UPDATE deals 
        SET deal_end_date = ?, deal_percentage = ?
@@ -197,7 +182,6 @@ router.put('/:productId', async (req, res) => {
       WHERE d.product_id = ? AND d.location_id = ?
     `;
 
-    // ✅ Destructure results properly
     const [dealRows] = await db.query(dealQuery, [productId, locationId]);
 
     if (dealRows.length > 0) {
@@ -212,14 +196,3 @@ router.put('/:productId', async (req, res) => {
 });
 
 module.exports = router;
-
-
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,3 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
@@ -7,13 +6,12 @@ import './Alerts.css';
 const Alerts = () => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  //The frontend components connect to Socket.IO and handle real-time events:
+
   useEffect(() => {
     const userId = sessionStorage.getItem('userId');
     const userType = sessionStorage.getItem('userType') || 'customer';
     if (!userId) return;
 
-    // Initialize socket connection
     const socket = io(`${import.meta.env.VITE_API_URL}`, {
       reconnection: true,
       reconnectionAttempts: 5,
@@ -21,11 +19,10 @@ const Alerts = () => {
       auth: { userId }
     });
 
-    // Set up socket event listeners
     socket.on('connect', () => {
       console.log('Socket connected, joining room:', userId);
-      socket.emit('join', `user_${userId}`);//We want to verify the user's identity before allowing them to join a room
-      //we need to know which users are in which rooms to send them specific messages
+      socket.emit('join', userId);
+
     });
 
     socket.on('connect_error', (error) => {
@@ -34,16 +31,16 @@ const Alerts = () => {
 
     socket.on('newAlert', (alert) => {
       console.log('New alert received:', alert);
-      // Create a unique key for the alert
+
       const alertKey = `${alert.message}-${alert.timestamp}`;
-      
+
       setAlerts(prevAlerts => {
-        // Check if alert already exists
+
         const isDuplicate = prevAlerts.some(
-          existingAlert => 
+          existingAlert =>
             `${existingAlert.message}-${existingAlert.timestamp}` === alertKey
         );
-        
+
         if (!isDuplicate) {
           return [{ ...alert, alertKey }, ...prevAlerts];
         }
@@ -51,7 +48,6 @@ const Alerts = () => {
       });
     });
 
-    // Fetch existing alerts
     const fetchAlerts = async () => {
       try {
         console.log('Fetching alerts for user:', userId);
@@ -96,7 +92,7 @@ const Alerts = () => {
       );
 
       if (response.status === 200) {
-        // Update the alerts state to mark this alert as read
+
         setAlerts(prevAlerts =>
           prevAlerts.map(alert =>
             alert.alert_id === alertId
@@ -108,7 +104,7 @@ const Alerts = () => {
     } catch (error) {
       console.error('Error marking alert as read:', error);
       if (error.response?.status === 401) {
-        // Token expired, redirect to login
+
         sessionStorage.clear();
         window.location.href = '/login';
       }

@@ -1,9 +1,9 @@
-const request = require('supertest'); 
+const request = require('supertest');
 const express = require('express');
-const router = require('../routes/deals'); 
-const db = require('../db'); 
+const router = require('../routes/deals');
+const db = require('../db');
 
-jest.mock('../db'); 
+jest.mock('../db');
 
 describe('Deals API', () => {
   let app;
@@ -11,8 +11,7 @@ describe('Deals API', () => {
   beforeAll(() => {
     app = express();
     app.use(express.json());
-    
-    // Mock socket.io instance
+
     const fakeIO = { emit: jest.fn(), to: () => ({ emit: jest.fn() }) };
     app.set('io', fakeIO);
 

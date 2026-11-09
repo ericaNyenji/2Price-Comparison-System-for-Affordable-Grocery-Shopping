@@ -1,66 +1,58 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
-import { useState } from "react";//{ useState } is a hook that lets you create state variables in your component.
-import axios from "axios";//Imports Axios, a library for making HTTP requests (like talking to your backend).
-import { useNavigate, Link } from "react-router-dom";//Imports a hook from React Router.useNavigate is used for programmatic navigation (like redirecting a user after login).
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
 import './Login.css';
 
-const Login = () => {//defining a functional React component called Login.
+const Login = () => {
 
-  const [email, setEmail] = useState("");// State Variable.email and password hold form input values.
-  const [password, setPassword] = useState("");// State Variable
-  const [error, setError] = useState(null);// State Variable. error holds any login error messages (like "Invalid credentials").
-  const navigate = useNavigate();//Navigation Hook. Allows you to programmatically change pages — useful after login success.
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {// we use "async" because we're using "await axios.post(...)" ........await pauses the function until that axios request finishes. You can only use await inside an async function. JavaScript won't let you otherwise. That's an asynchronous operation — meaning: It takes time (waiting for the server),, We don't know when it will finish,, JavaScript won't wait unless you tell it to
-    //Declares an async function to handle login.
-    e.preventDefault();//Prevents default form behavior (so the page doesn't reload).Because am using a button and I DONT WANT MY PAGE TO GET REFRESHED ???????????why?????????????why not say type=button at the button....because type should be type = submit. because we're submitting
+  const handleSubmit = async (e) => {
+
+    e.preventDefault();
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth`, { email, password });
-      //That exact string is passed to axios.post(...) on line 19, which sends the login request to the backend route mounted in server.js:
-      //The Vite part: import.meta.env>>import.meta is a standard ESM feature. Vite extends it with an env object containing variables loaded from your .env* files.
+
       console.log("Login response data:", response.data);
-    
+
       const { token, role, userId, name} = response.data;
 
-      // Store token in sessionStorage or sessionStorage
-      sessionStorage.setItem("token", token);//Stores the token in the browser's sessionStorage (so the user stays logged in).
+      sessionStorage.setItem("token", token);
       sessionStorage.setItem("name", name);
       sessionStorage.setItem("role", role);
-      //sessionStorage.setItem("email", email); 
-      //sessionStorage.setItem("userId", userId); 
+
       sessionStorage.setItem("userId", response.data.userId);
       sessionStorage.setItem("locationId", response.data.locationId);
-      //sessionStorage.setItem("country", response.data.country);//this is used in CategoryPage to filter products by country but in other places I have stored country in JwT
+
       sessionStorage.setItem("currencyCode", response.data.currency_code);
-      //sessionStorage.setItem("country", country); 
 
-      //console.log("UserID from sessionStorage:", userId);
-
-      // Redirect based on role
       if (role === "owner") {
         navigate("/owner-dashboard");
       } else {
-        navigate("/customer-dashboard"); 
-      }      
+        navigate("/customer-dashboard");
+      }
     } catch (err) {
-      setError("Invalid credentials");//If login fails (e.g., wrong password), set an error message to display.
+      setError("Invalid credentials");
     }
   };
 
-  return (//Rendered UI
+  return (
     <div className="login-container">
       <div className="login-card">
       <h2 className="login-title">Login</h2>
-      {error && <p className="login-error">{error}</p>}  {/* If there's an error, show it as a <p>. */}
+      {error && <p className="login-error">{error}</p>}  {}
       <form className="login-form" onSubmit={handleSubmit}>
-        {/* Wraps inputs in a form and links it to handleSubmit*/}
+        {}
         <input
           className="login-input"
           type="email"
           placeholder="Email adress..."
           value={email}
-          onChange={(e) => setEmail(e.target.value)}//onChange updates the state every time the user types.
+          onChange={(e) => setEmail(e.target.value)}
         />
         <input
           className="login-input"
@@ -79,4 +71,4 @@ const Login = () => {//defining a functional React component called Login.
   );
 };
 
-export default Login; //Exports the component so it can be used in other files (like in routing).
+export default Login;

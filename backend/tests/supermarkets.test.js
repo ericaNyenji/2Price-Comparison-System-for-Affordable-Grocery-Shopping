@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const router = require('../routes/supermarkets'); 
+const router = require('../routes/supermarkets');
 const db = require('../db');
 
 jest.mock('../db');
@@ -11,7 +11,7 @@ describe('Supermarkets API', () => {
   beforeAll(() => {
     app = express();
     app.use(express.json());
-    app.use('/api/supermarkets', router); 
+    app.use('/api/supermarkets', router);
   });
 
   it('should return a list of supermarkets on success', async () => {
@@ -62,7 +62,7 @@ describe('Supermarkets API', () => {
   it('should return 400 if supermarket_name is missing in POST', async () => {
     const response = await request(app)
       .post('/api/supermarkets')
-      .send({}); // No name
+      .send({});
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Supermarket name is required');
@@ -70,7 +70,7 @@ describe('Supermarkets API', () => {
 
   it('should return 500 if there is a database error on POST', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     db.execute.mockRejectedValueOnce(new Error('Insert failed'));
 
     const response = await request(app)

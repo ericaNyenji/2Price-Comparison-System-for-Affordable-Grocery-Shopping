@@ -1,17 +1,23 @@
-const request = require('supertest');  
+const request = require('supertest');
 const express = require('express');
-const router = require('../routes/search'); 
-const db = require('../db'); 
+const jwt = require('jsonwebtoken');
+const router = require('../routes/search');
+const db = require('../db');
 
-jest.mock('../db'); 
+jest.mock('../db');
 
 describe('GET /api/search', () => {
   let app;
+  let token;
 
   beforeAll(() => {
     app = express();
     app.use(express.json());
-    app.use('/api/search', router); 
+    app.use('/api/search', router);
+    token = jwt.sign(
+      { userId: 1, role: 'customer', country: 'Hungary' },
+      process.env.JWT_SECRET_KEY || 'defaultSecretKey'
+    );
   });
 
   it('should return a list of products matching the query', async () => {
@@ -40,10 +46,11 @@ describe('GET /api/search', () => {
       }
     ];
 
-    db.query.mockResolvedValueOnce([mockProducts]); 
+    db.query.mockResolvedValueOnce([mockProducts]);
 
     const response = await request(app)
       .get('/api/search')
+      .set('Authorization', `Bearer ${token}`)
       .query({ query: 'milk' });
 
     expect(response.status).toBe(200);
@@ -55,14 +62,14 @@ describe('GET /api/search', () => {
   it('should return a 500 error if there is a database error', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    db.query.mockRejectedValueOnce(new Error('Database error')); 
+    db.query.mockRejectedValueOnce(new Error('Database error'));
 
-    const response = await request(app).get('/api/search').query({ query: 'milk' });
+    const response = await request(app).get('/api/search').set('Authorization', `Bearer ${token}`).query({ query: 'milk' });
 
     expect(response.status).toBe(500);
     expect(response.body.error).toBe('Internal server error');
 
-    consoleSpy.mockRestore(); 
+    consoleSpy.mockRestore();
   });
 
   it('should return a filtered list of products based on supermarket type', async () => {
@@ -80,10 +87,11 @@ describe('GET /api/search', () => {
       }
     ];
 
-    db.query.mockResolvedValueOnce([mockProducts]); 
+    db.query.mockResolvedValueOnce([mockProducts]);
 
     const response = await request(app)
       .get('/api/search')
+      .set('Authorization', `Bearer ${token}`)
       .query({ query: 'milk', supermarketType: '1' });
 
     expect(response.status).toBe(200);
@@ -106,11 +114,12 @@ describe('GET /api/search', () => {
       }
     ];
 
-    db.query.mockResolvedValueOnce([mockProducts]); 
+    db.query.mockResolvedValueOnce([mockProducts]);
 
     const response = await request(app)
       .get('/api/search')
-      .query({ query: 'milk', lat: '47.4979', lng: '19.0402', radius: '5' }); 
+      .set('Authorization', `Bearer ${token}`)
+      .query({ query: 'milk', lat: '47.4979', lng: '19.0402', radius: '5' });
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(mockProducts);
@@ -118,6 +127,6 @@ describe('GET /api/search', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Clear mocks after each test to prevent data pollution
+    jest.clearAllMocks();
   });
 });

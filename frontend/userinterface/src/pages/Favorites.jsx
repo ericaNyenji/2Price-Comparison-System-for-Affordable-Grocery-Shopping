@@ -1,6 +1,5 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';  
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import { formatCurrency } from "../utils/currency";
@@ -111,7 +110,6 @@ const Favorites = () => {
   return (
     <div className="favorites-container">
       <h1>My Favorites</h1>
-
       {favorites.length === 0 ? (
         <p className="no-favorites">You don't have any favorites yet.</p>
       ) : (
@@ -131,14 +129,12 @@ const Favorites = () => {
                   className="favorite-image"
                 />
               </div>
-
               <div className="favorite-details">
                 <h3>{favorite.product_name}</h3>
                 <div className="price-info">
                   <p className="supermarket-name">🏬 {favorite.supermarket_name}</p>
                   <p className="location">📍 {favorite.location_name}</p>
                   <p className="price">{formatCurrency(Number(favorite.price).toFixed(2))}</p>
-                  
                   <div className="supermarket">
                     <img
                       src={`${import.meta.env.VITE_API_URL}/${favorite.supermarket_image}`}
@@ -151,7 +147,6 @@ const Favorites = () => {
                   )}
                 </div>
               </div>
-
               <div
                 className="favorite-button"
                 onClick={(e) => {

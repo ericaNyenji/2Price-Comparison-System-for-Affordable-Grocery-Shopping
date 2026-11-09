@@ -1,17 +1,23 @@
 const request = require('supertest');
 const express = require('express');
-const router = require('../routes/productsbycategory'); 
+const jwt = require('jsonwebtoken');
+const router = require('../routes/productsbycategory');
 const db = require('../db');
 
 jest.mock('../db');
 
 describe('GET /api/productsbycategory/:categoryId', () => {
   let app;
+  let token;
 
   beforeAll(() => {
     app = express();
     app.use(express.json());
-    app.use('/api/productsbycategory', router); 
+    app.use('/api/productsbycategory', router);
+    token = jwt.sign(
+      { userId: 1, role: 'customer', country: 'Hungary' },
+      process.env.JWT_SECRET_KEY || 'defaultSecretKey'
+    );
   });
 
   it('should return products for a given category', async () => {
@@ -27,10 +33,12 @@ describe('GET /api/productsbycategory/:categoryId', () => {
       { product_id: 2, product_name: 'Cake', image_path: '/images/cake.jpg' },
     ];
 
-    db.query.mockResolvedValueOnce([mockCategory]) 
-      .mockResolvedValueOnce([mockProducts]); 
+    db.query.mockResolvedValueOnce([mockCategory])
+      .mockResolvedValueOnce([mockProducts]);
 
-    const response = await request(app).get('/api/productsbycategory/1');
+    const response = await request(app)
+      .get('/api/productsbycategory/1')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
     expect(response.body.category_name).toBe('Electronics');
@@ -40,9 +48,11 @@ describe('GET /api/productsbycategory/:categoryId', () => {
   });
 
   it('should return 404 if the category is not found', async () => {
-    db.query.mockResolvedValueOnce([[]]); // No category found
+    db.query.mockResolvedValueOnce([[]]);
 
-    const response = await request(app).get('/api/productsbycategory/999'); // Non-existent category
+    const response = await request(app)
+      .get('/api/productsbycategory/999')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(404);
     expect(response.body.message).toBe('Category not found');
@@ -53,11 +63,13 @@ describe('GET /api/productsbycategory/:categoryId', () => {
 
     db.query.mockRejectedValueOnce(new Error('Database error'));
 
-    const response = await request(app).get('/api/productsbycategory/1');
+    const response = await request(app)
+      .get('/api/productsbycategory/1')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(500);
     expect(response.body.error).toBe('Server error');
 
-    consoleSpy.mockRestore(); // Restore console error after test
+    consoleSpy.mockRestore();
   });
 });

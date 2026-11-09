@@ -1,9 +1,6 @@
-//Instead of import React... return (React.createElement('div', null, 'Hello'));...>>>>>>>import {jsx as _jsx} from 'react/jsx-runtime' .....return _jsx('div', {children: 'Hello'});  is automatically injected.........Historically, you had to explicitly import React in every file where you used JSX because the build tools compiles JSX elements into React.createElement() statements under the hood.
-// src/components/SearchSection.jsx
 import SupermarketLocationPicker from './SupermarketLocationPicker';
 import Select from 'react-select';
-import './SearchSection.css'; 
-
+import './SearchSection.css';
 
 const SearchSection = ({
   searchQuery,
@@ -25,13 +22,11 @@ const SearchSection = ({
   handleSearchNoFilter
 }) => {
 
-  // Convert supermarket list into react-select options
   const supermarketOptions = supermarkets.map((supermarket) => ({
     value: supermarket.supermarket_name,
     label: supermarket.supermarket_name,
   }));
 
-    // Shared orange-red styling for both selects
     const selectStyles = {
     control: (base, state) => ({
       ...base,
@@ -39,14 +34,14 @@ const SearchSection = ({
       boxShadow: 'none',
       '&:hover': { borderColor: 'orangered' },
       borderRadius: '6px',
-       minHeight: '38px',       // a little taller for text
-      height: '32px',             // compact control
-      fontSize: '0.85rem',        // smaller text
-      padding: '0 2px',           // tighter padding
+       minHeight: '38px',
+      height: '32px',
+      fontSize: '0.85rem',
+      padding: '0 2px',
     }),
     valueContainer: (base) => ({
       ...base,
-      padding: '0 6px',           // less padding inside
+      padding: '0 6px',
     }),
     indicatorsContainer: (base) => ({
       ...base,
@@ -68,7 +63,7 @@ const SearchSection = ({
       fontSize: '0.85rem',
     }),
   };
-  
+
   return (
     <section className="search-section">
       <div className="search-bar">
@@ -79,7 +74,6 @@ const SearchSection = ({
           onChange={handleSearchChange}
         />
       </div>
-
       <div className="location-controls">
         <button onClick={() => setShowMap(!showMap)}>
           {showMap ? 'Hide Map' : 'Show Map'}
@@ -102,33 +96,15 @@ const SearchSection = ({
             />
           </div>
       </div>
-
       {showMap && (
         <SupermarketLocationPicker
           onLocationSelect={handleLocationSelect}
           showAllSupermarkets={true}
         />
       )}
-
-      {/* <div className="filter-controls">
-        <select value={filterType} onChange={handleFilterTypeChange}>
-          <option value="supermarket">Filter by Supermarket</option>
-          <option value="none">No Filter</option>
-        </select>
-
-        {filterType === "supermarket" && (
-          <select value={selectedFilter} onChange={handleFilterChange}>
-            <option value="">Select Supermarket</option>
-            {supermarkets.map((supermarket) => (
-              <option key={supermarket.supermarket_id} value={supermarket.supermarket_name}>
-                {supermarket.supermarket_name}
-              </option>
-            ))}
-          </select>
-        )}
-      </div> */}
+      {}
       <div className="filter-controls">
-        {/* First dropdown - filter type */}
+        {}
         <Select
           options={[
             { value: "supermarket", label: "Filter by Supermarket" },
@@ -138,8 +114,7 @@ const SearchSection = ({
           onChange={(selectedOption) => handleFilterTypeChange({ target: { value: selectedOption.value } })}
           styles={selectStyles}
         />
-
-        {/* Second dropdown - select supermarket */}
+        {}
         {filterType === "supermarket" && (
           <Select
             options={supermarketOptions}
@@ -152,7 +127,6 @@ const SearchSection = ({
           />
         )}
       </div>
-
       {loading && <div className="loading">Loading...</div>}
     </section>
   );

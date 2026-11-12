@@ -372,6 +372,7 @@ router.get('/details/:id', async (req, res) => {
 
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
+    const db = await getConnection();
     const { id } = req.params;
     const locationId = req.user.location_id;
 
@@ -409,7 +410,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
       await db.query('COMMIT');
 
-      req.app.get('io').emit('productDeleted', {
+      req.app.get('io')?.emit('productDeleted', {
         productId: parseInt(id),
         locationId: parseInt(locationId)
       });

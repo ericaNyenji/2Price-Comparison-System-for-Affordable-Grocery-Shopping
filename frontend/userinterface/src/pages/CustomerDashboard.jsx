@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import './CustomerDashboard.css';
-import DealsSection from './DealsSection';
 import { io } from 'socket.io-client';
 import SearchSection from '../components/SearchSection';
 import ResultsSection from "../components/ResultsSection";
 import ExploreSection from '../components/ExploreSection';
-import { useNavigate } from 'react-router-dom';
+import DealsSection from './DealsSection';
+//import { useNavigate } from 'react-router-dom';
 
 const CustomerDashboard = () => {
 
   const name = sessionStorage.getItem("name");
 
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [items, setItems] = useState([]);

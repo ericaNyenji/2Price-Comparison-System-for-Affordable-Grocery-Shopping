@@ -18,11 +18,10 @@ const OwnerCategoryPage = () => {
   useEffect(() => {
     const socket = io(`${import.meta.env.VITE_API_URL}`);
 
-      socket.on('productDeleted', ({ product_id, location_id }) => {
-    console.log("Received productDeleted event:", { product_id, location_id });
-    if (location_id === parseInt(locationId)) {
+      socket.on('productDeleted', ({ productId, locationId: deletedLocationId }) => {
+    if (deletedLocationId === parseInt(locationId)) {
       setProducts(prevProducts =>
-        prevProducts.filter(product => product.product_id !== product_id)
+        prevProducts.filter(product => product.product_id !== productId)
       );
     }
   });
@@ -36,8 +35,7 @@ const OwnerCategoryPage = () => {
     const fetchProducts = async () => {
       try {
 
-            const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/productsbycategory/${categoryId}`,
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/productsbycategory/${categoryId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -100,6 +98,12 @@ const OwnerCategoryPage = () => {
             Authorization: `Bearer ${token}`
           }
         });
+
+        setProducts(prevProducts =>
+          prevProducts.filter(product => product.product_id !== productId)
+        );
+        setError(null);
+        window.alert('Product deleted successfully');
 
       } catch (err) {
         setError('Failed to remove product from location');

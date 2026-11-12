@@ -22,8 +22,8 @@ const Login = () => {
       const { token, role, userId, name} = response.data;
 
       sessionStorage.setItem("token", token);
-      sessionStorage.setItem("name", name);
-      sessionStorage.setItem("role", role);
+      sessionStorage.setItem("name", name);//mary
+      sessionStorage.setItem("role", role);//customer
 
       sessionStorage.setItem("userId", response.data.userId);
       sessionStorage.setItem("locationId", response.data.locationId);
